@@ -20,7 +20,7 @@ class LoggerWrap(object):
 
 
 def __get_default_formatter() -> logging.Formatter:
-    return logging.Formatter("[{asctime}] [{filename}::{funcName}::{lineno}] [{levelname}] {message}", style='{')
+    return logging.Formatter('[{asctime}] [{filename}::{funcName}::{lineno}] [{levelname}] {message}', style='{')
 
 
 def __get_default_handler(name: AnyStr, formatter: logging.Formatter, backup_count=5) -> TimedRotatingFileHandler:

@@ -2,27 +2,37 @@ from typing import AnyStr, Dict
 
 from aiogram import Bot, Dispatcher, executor, types
 
+import bot.view.keyboard as keyboard
+from bot.enums import UserType
+from bot.exceptions import UserIsNotFound
+from bot.handlers import client, worker
+from database.db import DB
+
 
 class Service(object):
     def __init__(self, api_token: AnyStr, config: Dict):
-        self.dp = Dispatcher(Bot(token=api_token))
+        self.db = DB(config['database'])
+        self.dispatcher = Dispatcher(Bot(token=api_token))
+        self.worker = worker.Worker(self.dispatcher)
+        self.client = client.Client(self.dispatcher)
 
     def init_handlers(self):
-        self.dp.register_message_handler(self.__cmd_start, commands=["start"])
-        self.dp.register_message_handler(self.__action_cancel, lambda message: message.text == "Отмена")
+        self.dispatcher.register_message_handler(self.__cmd_start, commands=['start'])
+        self.client.init()
+        self.worker.init()
 
     def run(self):
-        executor.start_polling(self.dp, skip_updates=False)
+        executor.start_polling(self.dispatcher, skip_updates=False)
 
-    @staticmethod
-    async def __cmd_start(message: types.Message):
-        poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        poll_keyboard.add(types.KeyboardButton(text="Показать мои записи"))
-        poll_keyboard.add(types.KeyboardButton(text="Записаться"))
-        poll_keyboard.add(types.KeyboardButton(text="Отмена"))
-        await message.answer("Выберите пункт или нажмите Отмена", reply_markup=poll_keyboard)
+    async def __cmd_start(self, message: types.Message):
+        try:
+            user = self.db.get_user_by_id(message.from_user.id)
+        except UserIsNotFound:
+            user = self.db.add_user()
 
-    @staticmethod
-    async def __action_cancel(message: types.Message):
-        remove_keyboard = types.ReplyKeyboardRemove()
-        await message.answer("Действие отменено. Введите /start, чтобы начать заново.", reply_markup=remove_keyboard)
+        if user.type == UserType.WORKER:
+            reply_markup = keyboard.create_reply_keyboard_markup(self.worker.get_main_buttons())
+        else:
+            reply_markup = keyboard.create_reply_keyboard_markup(self.client.get_main_buttons())
+
+        await message.answer('Выберите пункт:', reply_markup=reply_markup)
