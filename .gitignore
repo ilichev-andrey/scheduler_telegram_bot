@@ -1,0 +1,7 @@
+.idea
+./db
+**/__pycache__
+venv
+logs
+config.js
+tests
