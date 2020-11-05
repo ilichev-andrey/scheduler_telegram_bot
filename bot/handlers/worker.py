@@ -1,24 +1,22 @@
 from typing import Tuple
 
 from bot.enums import UserType
-
 from bot.handlers.user import User
+from bot.view.buttons import Buttons
 
 
 class Worker(User):
-    TIMETABLE_DISPLAY_BUTTON = 'Показать расписание'
-
     def init(self) -> None:
         self.dispatcher.register_message_handler(
             self._timetable,
-            lambda message: message.text == self.TIMETABLE_DISPLAY_BUTTON
+            lambda message: message.text == Buttons.WORKER_TIMETABLE.value
         )
 
     def get_user_type(self):
         return UserType.WORKER
 
     def get_main_buttons(self) -> Tuple[str, ...]:
-        return 'Показать расписание', 'Записать'
+        return Buttons.WORKER_TIMETABLE.value, Buttons.WORKER_TIMETABLE_ENTRY.value
 
     def get_timetable_buttons(self) -> Tuple[str, ...]:
-        return 'На сегодня', 'На неделю'
+        return Buttons.WORKER_TIMETABLE_TODAY.value, Buttons.WORKER_TIMETABLE_WEEK.value
