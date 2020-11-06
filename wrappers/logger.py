@@ -20,7 +20,7 @@ class LoggerWrap(object):
 
 
 def __get_default_formatter() -> logging.Formatter:
-    return logging.Formatter('[{asctime}] [{filename}::{funcName}::{lineno}] [{levelname}] {message}', style='{')
+    return logging.Formatter('[{asctime}] [{filename}::{lineno}] [{levelname}] {message}', style='{')
 
 
 def __get_default_handler(name: AnyStr, formatter: logging.Formatter, backup_count=5) -> TimedRotatingFileHandler:
@@ -34,7 +34,7 @@ def __create_file(name: AnyStr) -> AnyStr:
     log_dir = os.path.dirname(file_name)
     os.makedirs(log_dir, exist_ok=True)
 
-    with open(file_name, 'w+') as fin:
+    with open(file_name, 'a+') as fin:
         fin.write('')
 
     return file_name
