@@ -13,3 +13,7 @@ class User(NamedTuple):
         fields = self._asdict()
         fields['type'] = self.type.value
         return fields
+
+
+def make_user(**kwargs):
+    return User(type=UserType(kwargs.pop('type')), **kwargs)

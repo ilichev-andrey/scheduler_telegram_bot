@@ -15,7 +15,7 @@ def main():
     logger.create(config['log_file'], logging.INFO)
 
     service = Service(os.getenv('TELEGRAM_API_TOKEN'), config, os.getenv('DATABASE_PASSWORD'))
-    service.init_handlers()
+    service.init()
     service.run()
 
 

@@ -3,6 +3,7 @@ from typing import Tuple
 from bot.enums import UserType
 from bot.handlers.user import User
 from bot.view.buttons import Buttons
+from wrappers.logger import LoggerWrap
 
 
 class Worker(User):

@@ -35,7 +35,7 @@ class DB(object):
         return user
 
     def get_user_by_id(self, user_id: int) -> containers.User:
-        cursor = self.con.cursor(cursor_factory=extras.DictCursor)
+        cursor = self.con.cursor(cursor_factory=extras.RealDictCursor)
         cursor.execute('''
             SELECT id, type, first_name, last_name, username
             FROM users
@@ -49,4 +49,4 @@ class DB(object):
             raise UserIsNotFound(f'Не найден пользователь с id={user_id}')
 
         LoggerWrap().get_logger().info(f'Получена запись из таблицы пользователей: {user}')
-        return containers.User(**user)
+        return containers.make_user(**user)

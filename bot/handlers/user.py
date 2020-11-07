@@ -1,19 +1,13 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Tuple
 
-from aiogram import Dispatcher, types
+from aiogram import types
 
 import bot.view.keyboard as keyboard
+from bot.handlers.ihandler import IHandler
 
 
-class User(ABC):
-    def __init__(self, dispatcher: Dispatcher):
-        self.dispatcher = dispatcher
-
-    @abstractmethod
-    def init(self) -> None:
-        pass
-
+class User(IHandler):
     @abstractmethod
     def get_user_type(self):
         pass
