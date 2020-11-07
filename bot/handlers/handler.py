@@ -3,7 +3,7 @@ from aiogram import Dispatcher, types
 import bot.view.keyboard as keyboard
 from bot.enums import UserType
 from bot.exceptions import UserIsNotFound
-from bot.handlers import client, worker
+from bot.handlers import calendar, client, worker
 from database.db import DB
 from wrappers.logger import LoggerWrap
 
@@ -13,11 +13,13 @@ class Handler(object):
         self.dispatcher = dispatcher
         self.db = db
 
+        self.calendar = calendar.Calendar(self.dispatcher)
         self.worker = worker.Worker(self.dispatcher)
-        self.client = client.Client(self.dispatcher)
+        self.client = client.Client(self.dispatcher, self.calendar)
 
     def init(self) -> None:
         self.dispatcher.register_message_handler(self.__start, commands=['start'])
+        self.calendar.init()
         self.worker.init()
         self.client.init()
 
