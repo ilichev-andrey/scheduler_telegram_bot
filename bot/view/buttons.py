@@ -12,6 +12,10 @@ class Buttons(Enum):
     CLIENT_TIMETABLE_FUTURE = 'Будущие записи'
     CLIENT_TIMETABLE_HISTORY = 'История записей'
 
+    PREV_STEP = 'Назад'
+    NEXT_STEP = 'Далее'
+    RESUME = 'Продолжить'
+
 
 # Текст кнопок должен быть уникальный, т.к. на них подвешиваются разные события
 unique(Buttons)

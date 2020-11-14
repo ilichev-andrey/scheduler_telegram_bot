@@ -8,5 +8,5 @@ class AccessMiddleware(BaseMiddleware):
     @staticmethod
     async def on_process_message(message: types.Message, _):
         if message.from_user.is_bot:
-            await message.answer("Access Denied")
+            await message.answer('Access Denied')
             raise CancelHandler()

@@ -1,11 +1,12 @@
-from typing import Dict
+from datetime import date
+from typing import Dict, List
 
 import psycopg2
-from psycopg2 import extras, extensions
 from aiogram.types import User
+from psycopg2 import extras, extensions
 
+from bot import exceptions
 from bot.enums import UserType
-from bot.exceptions import UserIsNotFound
 from database import containers
 from wrappers.logger import LoggerWrap
 
@@ -46,7 +47,59 @@ class DB(object):
         cursor.close()
 
         if not user:
-            raise UserIsNotFound(f'Не найден пользователь с id={user_id}')
+            raise exceptions.UserIsNotFound(f'Не найден пользователь с id={user_id}')
 
         LoggerWrap().get_logger().info(f'Получена запись из таблицы пользователей: {user}')
         return containers.make_user(**user)
+
+    def get_services(self) -> List[containers.Service]:
+        cursor = self.con.cursor(cursor_factory=extras.RealDictCursor)
+        cursor.execute('''
+            SELECT id, name, time_interval
+            FROM services
+        ''')
+
+        services = cursor.fetchall()
+        cursor.close()
+
+        if not services:
+            raise exceptions.ServiceIsNotFound(f'Не найдена ни одна услуга')
+
+        return [containers.make_service(**service) for service in services]
+
+    def get_timetable_by_day(self, day: date) -> List[containers.TimetableEntry]:
+        cursor = self.con.cursor(cursor_factory=extras.RealDictCursor)
+        cursor.execute('''
+            SELECT 
+                id,
+                worker_id,
+                client_id,
+                service_id,
+                extract(epoch from create_dt) as create_dt,
+                extract(epoch from start_dt) as start_dt
+            FROM public.timetable
+            where 
+                start_dt >= %(day)s::date
+                and start_dt < %(day)s::date+1
+                and client_id isnull 
+        ''', {'day': day})
+
+        entries = cursor.fetchall()
+        cursor.close()
+
+        LoggerWrap().get_logger().info(f'Получены записи из таблицы расписания: {entries}')
+        if not entries:
+            raise exceptions.TimetableEntryIsNotFound(f'Не найдена ни одна запись в распивании')
+
+        return [containers.make_timetable_entry(**entry) for entry in entries]
+
+    def update_timetable_entry(self, timetable_id: int, service_id: int, user_id: int):
+        cursor = self.con.cursor(cursor_factory=extras.RealDictCursor)
+        cursor.execute('''
+            UPDATE timetable 
+            SET client_id=%s, service_id=%s
+            WHERE id=%s
+        ''', (user_id, service_id, timetable_id))
+
+        self.con.commit()
+        cursor.close()
