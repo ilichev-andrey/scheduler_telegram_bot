@@ -66,10 +66,33 @@ class DB(object):
 
         return [containers.make_service(**service) for service in services]
 
+    def get_timetable(self) -> List[containers.TimetableEntry]:
+        cursor = self.con.cursor(cursor_factory=extras.RealDictCursor)
+        cursor.execute('''
+             SELECT
+                 id,
+                 worker_id,
+                 client_id,
+                 service_id,
+                 extract(epoch from create_dt) as create_dt,
+                 extract(epoch from start_dt) as start_dt
+             FROM public.timetable
+             WHERE client_id isnull
+        ''')
+
+        entries = cursor.fetchall()
+        cursor.close()
+
+        LoggerWrap().get_logger().info(f'Получены записи из таблицы расписания: {entries}')
+        if not entries:
+            raise exceptions.TimetableEntryIsNotFound(f'Не найдена ни одна запись в распивании')
+
+        return [containers.make_timetable_entry(**entry) for entry in entries]
+
     def get_timetable_by_day(self, day: date) -> List[containers.TimetableEntry]:
         cursor = self.con.cursor(cursor_factory=extras.RealDictCursor)
         cursor.execute('''
-            SELECT 
+            SELECT
                 id,
                 worker_id,
                 client_id,
@@ -77,10 +100,10 @@ class DB(object):
                 extract(epoch from create_dt) as create_dt,
                 extract(epoch from start_dt) as start_dt
             FROM public.timetable
-            where 
+            WHERE
                 start_dt >= %(day)s::date
                 and start_dt < %(day)s::date+1
-                and client_id isnull 
+                and client_id isnull
         ''', {'day': day})
 
         entries = cursor.fetchall()
@@ -95,7 +118,7 @@ class DB(object):
     def update_timetable_entry(self, timetable_id: int, service_id: int, user_id: int):
         cursor = self.con.cursor(cursor_factory=extras.RealDictCursor)
         cursor.execute('''
-            UPDATE timetable 
+            UPDATE timetable
             SET client_id=%s, service_id=%s
             WHERE id=%s
         ''', (user_id, service_id, timetable_id))
