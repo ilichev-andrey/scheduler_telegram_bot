@@ -2,8 +2,10 @@ from aiogram import Dispatcher, types
 
 import bot.view.keyboard as keyboard
 from bot.enums import UserType
-from bot.exceptions import UserIsNotFound
-from bot.handlers import calendar, client, worker
+from database.exceptions import UserIsNotFound
+from bot.handlers import calendar
+from bot.handlers.client import client
+from bot.handlers.worker import worker
 from bot.view import static
 from database.db import DB
 from wrappers.logger import LoggerWrap

@@ -5,9 +5,8 @@ import psycopg2
 from aiogram.types import User
 from psycopg2 import extras, extensions
 
-from bot import exceptions
 from bot.enums import UserType
-from database import containers
+from database import containers, exceptions
 from wrappers.logger import LoggerWrap
 
 

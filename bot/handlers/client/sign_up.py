@@ -1,32 +1,27 @@
 from datetime import time
-from typing import Tuple
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 
-from bot import exceptions
-from bot.enums import UserType
-from bot.handlers import calendar, user
-from bot.handlers.states import ClientRequestStates
+from bot.handlers import calendar
+from bot.handlers import ihandler
+from bot.handlers.client.states import ClientRequestStates
 from bot.view import keyboard
 from bot.view import static
 from bot.view.buttons import Buttons
-from database import converter
+from database import converter, exceptions
 from database.db import DB
 from database.helpers import services, timetable
 from wrappers.logger import LoggerWrap
 
 
-class Client(user.User):
+class SignUp(ihandler.IHandler):
     def __init__(self, dispatcher: Dispatcher, db: DB, calendar_handler: calendar.Calendar):
         super().__init__(dispatcher)
         self.db = db
         self.calendar = calendar_handler
 
     def init(self) -> None:
-        self.dispatcher.register_message_handler(
-            self._timetable,
-            lambda message: message.text == Buttons.CLIENT_TIMETABLE.value)
         self.dispatcher.register_message_handler(
             self._select_service,
             lambda message: message.text == Buttons.CLIENT_ADD_TIMETABLE_ENTRY.value,
@@ -44,27 +39,18 @@ class Client(user.User):
             state=ClientRequestStates.waiting_time,
             content_types=types.ContentTypes.TEXT)
 
-    def get_user_type(self):
-        return UserType.CLIENT
-
-    def get_main_buttons(self) -> Tuple[str, ...]:
-        return Buttons.CLIENT_TIMETABLE.value, Buttons.CLIENT_ADD_TIMETABLE_ENTRY.value
-
-    def get_timetable_buttons(self) -> Tuple[str, ...]:
-        return Buttons.CLIENT_TIMETABLE_FUTURE.value, Buttons.CLIENT_TIMETABLE_HISTORY.value
-
     async def _select_service(self, message: types.Message, state: FSMContext):
         try:
-            services = self.db.get_services()
+            service_list = self.db.get_services()
         except exceptions.ServiceIsNotFound as e:
             LoggerWrap().get_logger().exception(e)
             await message.answer(static.INTERNAL_ERROR)
             return
 
-        await state.update_data(services=services)
+        await state.update_data(services=service_list)
         await message.answer(
             static.SELECT_ITEM,
-            reply_markup=keyboard.create_reply_keyboard_markup(tuple(service.name for service in services)))
+            reply_markup=keyboard.create_reply_keyboard_markup(tuple(service.name for service in service_list)))
 
         await ClientRequestStates.waiting_service.set()
 
@@ -116,4 +102,3 @@ class Client(user.User):
         self.db.update_timetable_entry(timetable_entry.id, service.id, message.from_user.id)
         await message.answer(f'{static.ADDED} на услугу {service.name} в {timetable_entry.start_dt}')
         await state.finish()
-
