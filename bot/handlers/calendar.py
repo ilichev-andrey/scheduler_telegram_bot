@@ -6,11 +6,11 @@ from dateutil.relativedelta import relativedelta
 from telegram_bot_calendar import WMonthTelegramCalendar, LSTEP
 from telegram_bot_calendar.static import Locales
 
-from bot.handlers.ihandler import IHandler
+from bot.handlers import AbstractHandler
 from bot.view import static
 
 
-class Calendar(IHandler):
+class Calendar(AbstractHandler):
     on_selected_date = None
 
     def __init__(self, dispatcher: Dispatcher, months_future_count=2):

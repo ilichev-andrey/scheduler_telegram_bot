@@ -3,22 +3,20 @@ from datetime import time
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 
-from bot.handlers import calendar
-from bot.handlers import ihandler
-from bot.handlers.client.states import ClientRequestStates
-from bot.view import keyboard
-from bot.view import static
-from bot.view.buttons import Buttons
-from database import converter, exceptions
-from database.db import DB
+from bot.handlers import AbstractHandler, Calendar, client
+from bot.view import Buttons, keyboard, static
+from database import converter, exceptions, provider
 from database.helpers import services, timetable
-from wrappers.logger import LoggerWrap
+from wrappers import LoggerWrap
 
 
-class SignUp(ihandler.IHandler):
-    def __init__(self, dispatcher: Dispatcher, db: DB, calendar_handler: calendar.Calendar):
+class SignUp(AbstractHandler):
+    def __init__(self, dispatcher: Dispatcher, service_provider: provider.Service,
+                 timetable_provider: provider.ClientTimetable, calendar_handler: Calendar):
         super().__init__(dispatcher)
-        self.db = db
+
+        self.service_provider = service_provider
+        self.timetable_provider = timetable_provider
         self.calendar = calendar_handler
 
     def init(self) -> None:
@@ -28,20 +26,20 @@ class SignUp(ihandler.IHandler):
             state='*')
         self.dispatcher.register_message_handler(
             self._select_date,
-            state=ClientRequestStates.waiting_service,
+            state=client.ClientRequestStates.waiting_service,
             content_types=types.ContentTypes.TEXT)
         self.dispatcher.register_message_handler(
             self._select_time,
-            state=ClientRequestStates.waiting_date,
+            state=client.ClientRequestStates.waiting_date,
             content_types=types.ContentTypes.TEXT)
         self.dispatcher.register_message_handler(
             self._add_timetable_entry,
-            state=ClientRequestStates.waiting_time,
+            state=client.ClientRequestStates.waiting_time,
             content_types=types.ContentTypes.TEXT)
         self.dispatcher.register_message_handler(
             self._cancel,
             lambda message: message.text == Buttons.CANCEL.value,
-            state=ClientRequestStates.all_states,
+            state=client.ClientRequestStates.all_states,
             content_types=types.ContentTypes.TEXT)
 
     @staticmethod
@@ -56,7 +54,7 @@ class SignUp(ihandler.IHandler):
 
     async def _select_service(self, message: types.Message, state: FSMContext):
         try:
-            service_list = self.db.get_services()
+            service_list = self.service_provider.get()
         except exceptions.ServiceIsNotFound as e:
             LoggerWrap().get_logger().exception(e)
             await self._error(message)
@@ -68,14 +66,14 @@ class SignUp(ihandler.IHandler):
             static.SELECT_ITEM,
             reply_markup=keyboard.create_reply_keyboard_markup(button_names))
 
-        await ClientRequestStates.waiting_service.set()
+        await client.ClientRequestStates.waiting_service.set()
 
     async def _select_date(self, message: types.Message, state: FSMContext):
         await state.update_data(chosen_service=message.text.lower())
         await message.answer(static.SELECT_DATE)
 
         try:
-            entries = self.db.get_timetable()
+            entries = self.timetable_provider.get()
         except exceptions.TimetableEntryIsNotFound as e:
             LoggerWrap().get_logger().exception(e)
             await self._error(message)
@@ -90,7 +88,7 @@ class SignUp(ihandler.IHandler):
     async def _on_selected_date(chosen_date: str, message: types.Message, state: FSMContext):
         LoggerWrap().get_logger().info(f'получена дата {chosen_date}')
         await state.update_data(chosen_date=chosen_date)
-        await ClientRequestStates.waiting_date.set()
+        await client.ClientRequestStates.waiting_date.set()
 
         button_names = (f'{static.SELECTED_DATE} {chosen_date}. Нажмите для продолжения', Buttons.CANCEL.value)
         await message.answer(
@@ -100,7 +98,7 @@ class SignUp(ihandler.IHandler):
     async def _select_time(self, message: types.Message, state: FSMContext):
         user_data = await state.get_data()
         try:
-            timetable_day = self.db.get_timetable_by_day(user_data['chosen_date'])
+            timetable_day = self.timetable_provider.get_by_day(user_data['chosen_date'])
         except exceptions.TimetableEntryIsNotFound as e:
             LoggerWrap().get_logger().exception(e)
             await self._error(message)
@@ -112,7 +110,7 @@ class SignUp(ihandler.IHandler):
             static.SELECT_ITEM,
             reply_markup=keyboard.create_reply_keyboard_markup(button_names))
 
-        await ClientRequestStates.waiting_time.set()
+        await client.ClientRequestStates.waiting_time.set()
 
     async def _add_timetable_entry(self, message: types.Message, state: FSMContext):
         await state.update_data(chosen_time=message.text.lower())
@@ -124,6 +122,6 @@ class SignUp(ihandler.IHandler):
             time.fromisoformat(user_data['chosen_time']))
 
         service = services.get_by_name(user_data['services'], user_data['chosen_service'])
-        self.db.update_timetable_entry(timetable_entry.id, service.id, message.from_user.id)
+        self.timetable_provider.update_entry(timetable_entry.id, service.id, message.from_user.id)
         await message.answer(f'{static.ADDED} на услугу {service.name} в {timetable_entry.start_dt}')
         await state.finish()

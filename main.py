@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-from bot.service import Service
+from bot import Service
 from wrappers import logger
 
 CONFIG_FILE = 'config.js'

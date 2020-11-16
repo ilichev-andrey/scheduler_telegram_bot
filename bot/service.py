@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher, executor
 
 from bot.handlers import handler
 from bot.middlewares import AccessMiddleware
-from database.db import DB
+from database import DB
 
 
 class Service(object):

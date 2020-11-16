@@ -1,8 +1,8 @@
 from typing import Tuple
 
 from bot.enums import UserType
-from bot.handlers.user import User
-from bot.view.buttons import Buttons
+from bot.handlers import User
+from bot.view import Buttons
 
 
 class Worker(User):

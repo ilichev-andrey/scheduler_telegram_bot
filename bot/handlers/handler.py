@@ -1,24 +1,26 @@
 from aiogram import Dispatcher, types
 
-import bot.view.keyboard as keyboard
 from bot.enums import UserType
 from database.exceptions import UserIsNotFound
-from bot.handlers import calendar
-from bot.handlers.client import client
-from bot.handlers.worker import worker
-from bot.view import static
-from database.db import DB
-from wrappers.logger import LoggerWrap
+from bot.handlers import AbstractHandler, Calendar
+from bot.handlers.client import Client
+from bot.handlers.worker import Worker
+from bot.view import static, keyboard
+from database import DB, provider
+from wrappers import LoggerWrap
 
 
-class Handler(object):
+class Handler(AbstractHandler):
     def __init__(self, dispatcher: Dispatcher, db: DB):
-        self.dispatcher = dispatcher
-        self.db = db
+        super().__init__(dispatcher)
 
-        self.calendar = calendar.Calendar(self.dispatcher)
-        self.worker = worker.Worker(self.dispatcher)
-        self.client = client.Client(self.dispatcher, self.db, self.calendar)
+        self.user_provider = provider.User(db)
+        self.service_provider = provider.Service(db)
+        self.timetable_provider = provider.Timetable(db)
+
+        self.calendar = Calendar(dispatcher)
+        self.worker = Worker(dispatcher)
+        self.client = Client(dispatcher, db, self.service_provider, self.calendar)
 
     def init(self) -> None:
         self.dispatcher.register_message_handler(self.__start, commands=['start'])
@@ -28,10 +30,10 @@ class Handler(object):
 
     async def __start(self, message: types.Message):
         try:
-            user = self.db.get_user_by_id(message.from_user.id)
+            user = self.user_provider.get_by_id(message.from_user.id)
         except UserIsNotFound as e:
             LoggerWrap().get_logger().exception(e)
-            user = self.db.add_user(message.from_user)
+            user = self.user_provider.add(message.from_user)
 
         LoggerWrap().get_logger().info(user)
         if user.type == UserType.WORKER:

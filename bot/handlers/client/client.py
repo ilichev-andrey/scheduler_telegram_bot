@@ -3,18 +3,18 @@ from typing import Tuple
 from aiogram import Dispatcher
 
 from bot.enums import UserType
-from bot.handlers import calendar, user
-from bot.handlers.client import sign_up
+from bot.handlers import Calendar, User, client
 from bot.view.buttons import Buttons
-from database.db import DB
+from database import DB, provider
 
 
-class Client(user.User):
-    def __init__(self, dispatcher: Dispatcher, db: DB, calendar_handler: calendar.Calendar):
+class Client(User):
+    def __init__(self, dispatcher: Dispatcher, db: DB, service_provider: provider.Service, calendar_handler: Calendar):
         super().__init__(dispatcher)
-        self.db = db
+
+        self.timetable_provider = provider.ClientTimetable(db)
         self.calendar = calendar_handler
-        self.sign_up = sign_up.SignUp(self.dispatcher, self.db, self.calendar)
+        self.sign_up = client.SignUp(dispatcher, service_provider, self.timetable_provider, calendar_handler)
 
     def init(self) -> None:
         self.dispatcher.register_message_handler(

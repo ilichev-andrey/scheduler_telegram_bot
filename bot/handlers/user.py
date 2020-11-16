@@ -3,12 +3,11 @@ from typing import Tuple
 
 from aiogram import types
 
-import bot.view.keyboard as keyboard
-from bot.handlers.ihandler import IHandler
-from bot.view import static
+from bot.handlers import AbstractHandler
+from bot.view import keyboard, static
 
 
-class User(IHandler):
+class User(AbstractHandler):
     @abstractmethod
     def get_user_type(self):
         pass
