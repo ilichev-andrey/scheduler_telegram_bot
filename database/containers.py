@@ -36,15 +36,21 @@ def make_service(**kwargs) -> Service:
 
 class TimetableEntry(NamedTuple):
     id: int
-    worker_id: int
-    client_id: int or None
-    service_id: int or None
-    create_dt: datetime
-    start_dt: datetime
+    worker_id: int = None
+    client_id: int = None
+    service_id: int = None
+    service_name: str = None
+    create_dt: datetime = None
+    start_dt: datetime = None
 
 
-def make_timetable_entry(**kwargs) -> TimetableEntry:
-    return TimetableEntry(
-        create_dt=datetime.fromtimestamp(kwargs.pop('create_dt')),
-        start_dt=datetime.fromtimestamp(kwargs.pop('start_dt')),
-        **kwargs)
+def make_timetable_entry(**kwargs):
+    create_dt = kwargs.pop('create_dt', None)
+    if create_dt is not None:
+        create_dt = datetime.fromtimestamp(create_dt)
+
+    start_dt = kwargs.pop('start_dt', None)
+    if start_dt is not None:
+        start_dt = datetime.fromtimestamp(start_dt)
+
+    return TimetableEntry(create_dt=create_dt, start_dt=start_dt, **kwargs)

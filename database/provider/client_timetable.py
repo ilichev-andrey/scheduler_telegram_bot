@@ -60,6 +60,28 @@ class ClientTimetable(provider.Timetable):
 
         return [containers.make_timetable_entry(**entry) for entry in entries]
 
+    def get_by_user_id(self, user_id: int) -> List[containers.TimetableEntry]:
+        cursor = self.db.con.cursor(cursor_factory=extras.RealDictCursor)
+        cursor.execute('''
+            SELECT
+                timetable.id,
+                EXTRACT(epoch FROM timetable.start_dt) AS start_dt,
+                services.name as service_name
+            FROM timetable
+            LEFT JOIN services ON services.id = timetable.service_id        
+            WHERE
+                client_id=%s
+        ''', (user_id,))
+
+        entries = cursor.fetchall()
+        cursor.close()
+
+        LoggerWrap().get_logger().info(f'Получены записи из таблицы расписания: {entries}')
+        if not entries:
+            raise exceptions.TimetableEntryIsNotFound(f'Не найдена ни одна запись в распивании')
+
+        return [containers.make_timetable_entry(**entry) for entry in entries]
+
     def update_entry(self, timetable_id: int, service_id: int, user_id: int):
         cursor = self.db.con.cursor(cursor_factory=extras.RealDictCursor)
         cursor.execute('''
