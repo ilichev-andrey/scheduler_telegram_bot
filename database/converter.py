@@ -1,5 +1,5 @@
-from datetime import datetime
+import datetime
 
 
-def to_human_time(dt: datetime) -> str:
-    return '{:02d}:{:02d}'.format(dt.hour, dt.minute)
+def to_human_time(tm: datetime.time) -> str:
+    return tm.strftime('%H:%M')
