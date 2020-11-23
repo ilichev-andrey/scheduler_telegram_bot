@@ -9,5 +9,5 @@ def get_by_name(services: List[Service], name: str) -> Service:
         if service.name == name:
             return service
 
-    raise ServiceIsNotFound('Услуга не найдена')
+    raise ServiceIsNotFound(f'Услуга не найдена {name}', services)
 

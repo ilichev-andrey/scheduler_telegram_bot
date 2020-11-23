@@ -42,22 +42,21 @@ class SignUp(AbstractHandler):
             state=client.ClientRequestStates.all_states,
             content_types=types.ContentTypes.TEXT)
 
-    @staticmethod
-    async def _error(message: types.Message, state: FSMContext = None):
-        if state is not None:
-            await state.reset_state()
+    async def _error(self, e: exceptions.BaseBotException, message: types.Message, state: FSMContext):
+        LoggerWrap().get_logger().exception(e)
+        await self._cancel(message, state)
         await message.answer(static.INTERNAL_ERROR)
 
     @staticmethod
-    async def _cancel(state: FSMContext):
+    async def _cancel(message: types.Message, state: FSMContext):
         await state.reset_state()
+        await message.answer(static.START, reply_markup=types.ReplyKeyboardRemove())
 
     async def _select_service(self, message: types.Message, state: FSMContext):
         try:
             service_list = self.service_provider.get()
         except exceptions.ServiceIsNotFound as e:
-            LoggerWrap().get_logger().exception(e)
-            await self._error(message)
+            await self._error(e, message, state)
             return
 
         await state.update_data(services=service_list)
@@ -70,15 +69,15 @@ class SignUp(AbstractHandler):
 
     async def _select_date(self, message: types.Message, state: FSMContext):
         await state.update_data(chosen_service=message.text.lower())
-        await message.answer(static.SELECT_DATE)
 
         try:
             entries = self.timetable_provider.get()
-        except exceptions.TimetableEntryIsNotFound as e:
-            LoggerWrap().get_logger().exception(e)
-            await self._error(message)
+        except exceptions.TimetableEntryIsNotFound:
+            await message.answer(static.BUSY)
+            await self._cancel(message, state)
             return
 
+        await message.answer(static.SELECT_DATE)
         await self.calendar.open(
             message,
             on_selected_date=lambda chosen_date: self._on_selected_date(chosen_date, message, state),
@@ -90,7 +89,7 @@ class SignUp(AbstractHandler):
         await state.update_data(chosen_date=chosen_date)
         await client.ClientRequestStates.waiting_date.set()
 
-        button_names = (f'{static.SELECTED_DATE} {chosen_date}. Нажмите для продолжения', Buttons.CANCEL.value)
+        button_names = (f'{static.SELECTED_DATE} {chosen_date}. {static.CLICK_TO_CONTINUE}', Buttons.CANCEL.value)
         await message.answer(
             static.SELECT_ITEM,
             reply_markup=keyboard.create_reply_keyboard_markup(button_names))
@@ -100,12 +99,12 @@ class SignUp(AbstractHandler):
         try:
             timetable_day = self.timetable_provider.get_by_day(user_data['chosen_date'])
         except exceptions.TimetableEntryIsNotFound as e:
-            LoggerWrap().get_logger().exception(e)
-            await self._error(message)
+            await self._error(e, message, state)
             return
 
         await state.update_data(timetable_day=timetable_day)
-        button_names = (*(converter.to_human_time(entry.start_dt) for entry in timetable_day), Buttons.CANCEL.value)
+        times_gen = (converter.to_human_time(entry.start_dt.time()) for entry in timetable_day)
+        button_names = (*times_gen, Buttons.CANCEL.value)
         await message.answer(
             static.SELECT_ITEM,
             reply_markup=keyboard.create_reply_keyboard_markup(button_names))

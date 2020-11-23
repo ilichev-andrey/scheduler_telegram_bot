@@ -11,3 +11,7 @@ SELECTED_DATE = f'{SELECTED} дату:'
 SELECTED_TIME = f'{SELECTED} время:'
 
 ADDED = 'Вы записаны'
+
+START = 'Нажмите /start, чтобы начать'
+BUSY = 'Нет свободных мест'
+CLICK_TO_CONTINUE = 'Нажмите для продолжения'
