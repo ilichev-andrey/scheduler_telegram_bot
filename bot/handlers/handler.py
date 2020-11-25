@@ -19,7 +19,7 @@ class Handler(AbstractHandler):
         self.timetable_provider = provider.Timetable(db)
 
         self.calendar = Calendar(dispatcher)
-        self.worker = Worker(dispatcher)
+        self.worker = Worker(dispatcher, self.service_provider)
         self.client = Client(dispatcher, db, self.service_provider, self.calendar)
 
     def init(self) -> None:

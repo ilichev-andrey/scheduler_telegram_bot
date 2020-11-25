@@ -53,7 +53,7 @@ class ClientTimetable(provider.Timetable):
         ''', (user_id,))
 
     def update_entry(self, timetable_id: int, service_id: int, user_id: int):
-        cursor = self.db.con.cursor(cursor_factory=extras.RealDictCursor)
+        cursor = self.db.con.cursor()
         cursor.execute('''
             UPDATE timetable
             SET client_id=%s, service_id=%s

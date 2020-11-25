@@ -1,9 +1,9 @@
 from typing import List
 
+from psycopg2 import Error, errorcodes
 from psycopg2 import extras
 
-from database import containers, exceptions
-from database import DB
+from database import DB, containers, exceptions
 
 
 class Service(object):
@@ -24,3 +24,18 @@ class Service(object):
             raise exceptions.ServiceIsNotFound(f'Не найдена ни одна услуга')
 
         return [containers.make_service(**service) for service in services]
+
+    def add(self, name: str):
+        cursor = self.db.con.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO services (name)
+                VALUES (%s)
+            ''', (name,))
+            self.db.con.commit()
+        except Error as e:
+            if e.pgcode == errorcodes.UNIQUE_VIOLATION:
+                raise exceptions.ServiceAlreadyExists(f'{name} уже существует')
+            raise exceptions.BaseBotException(str(e))
+        finally:
+            cursor.close()

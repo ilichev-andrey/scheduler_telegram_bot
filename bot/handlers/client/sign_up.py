@@ -5,7 +5,8 @@ from aiogram.dispatcher import FSMContext
 
 from bot.handlers import AbstractHandler, Calendar, client
 from bot.view import Buttons, keyboard, static
-from database import converter, exceptions, provider
+from database import exceptions, provider
+from database.converters import converter
 from database.helpers import services, timetable
 from wrappers import LoggerWrap
 

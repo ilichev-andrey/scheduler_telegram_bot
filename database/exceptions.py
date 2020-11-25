@@ -12,6 +12,11 @@ class ServiceIsNotFound(BaseBotException):
     pass
 
 
+class ServiceAlreadyExists(BaseBotException):
+    """Если услуга уже существует"""
+    pass
+
+
 class TimetableEntryIsNotFound(BaseBotException):
     """Если запись в расписании не существует"""
     pass
