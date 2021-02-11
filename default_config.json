@@ -1,0 +1,7 @@
+{
+  "log_file": "logs/bot.log",
+  "api_connection": {
+    "host": "127.0.0.1",
+    "port": 45678
+  }
+}

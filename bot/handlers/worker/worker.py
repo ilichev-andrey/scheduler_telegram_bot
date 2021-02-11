@@ -1,18 +1,17 @@
 from typing import Tuple
 
 from aiogram import Dispatcher
+from scheduler_core import enums
 
-from bot.enums import UserType
-from bot.handlers import User
-from bot.handlers.worker.services import Services
-from bot.view import Buttons
-from database import provider
+from handlers.user import User
+from handlers.worker.services import Services
+from view.buttons import Buttons
 
 
 class Worker(User):
-    def __init__(self, dispatcher: Dispatcher, service_provider: provider.Service):
+    def __init__(self, dispatcher: Dispatcher):
         super().__init__(dispatcher)
-        self.services = Services(dispatcher, service_provider)
+        self.services = Services(dispatcher)
 
     def init(self) -> None:
         self.dispatcher.register_message_handler(
@@ -21,7 +20,7 @@ class Worker(User):
         self.services.init()
 
     def get_user_type(self):
-        return UserType.WORKER
+        return enums.UserType.WORKER
 
     def get_main_buttons(self) -> Tuple[str, ...]:
         return Buttons.WORKER_TIMETABLE.value, Buttons.WORKER_ADD_TIMETABLE_ENTRY.value, Buttons.WORKER_SERVICES.value

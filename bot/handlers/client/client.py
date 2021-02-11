@@ -1,22 +1,30 @@
-from datetime import datetime
 from typing import Tuple, List
 
 from aiogram import Dispatcher, types
+from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from scheduler_core import containers, enums
 
-from bot.enums import UserType
-from bot.handlers import Calendar, User, client
-from bot.view import Buttons, keyboard
-from database import DB, containers, exceptions, provider
+from handlers.calendar import Calendar
+from handlers.client.sign_up import SignUp
+from handlers.user import User
+from view import keyboard
+from view.buttons import Buttons
+
+
+class ClientRequestStates(StatesGroup):
+    waiting_service = State()
+    waiting_date = State()
+    waiting_time = State()
+    cancel = State()
 
 
 class Client(User):
-    def __init__(self, dispatcher: Dispatcher, db: DB, service_provider: provider.Service, calendar_handler: Calendar):
+    def __init__(self, dispatcher: Dispatcher, calendar_handler: Calendar):
         super().__init__(dispatcher)
 
-        self.timetable_provider = provider.ClientTimetable(db)
         self.calendar = calendar_handler
-        self.sign_up = client.SignUp(dispatcher, service_provider, self.timetable_provider, calendar_handler)
+        self.sign_up = SignUp(dispatcher, calendar_handler)
 
     def init(self) -> None:
         self.dispatcher.register_message_handler(
@@ -31,7 +39,7 @@ class Client(User):
         self.sign_up.init()
 
     def get_user_type(self):
-        return UserType.CLIENT
+        return enums.UserType.CLIENT
 
     def get_main_buttons(self) -> Tuple[str, ...]:
         return Buttons.CLIENT_TIMETABLE.value, Buttons.CLIENT_ADD_TIMETABLE_ENTRY.value
@@ -65,16 +73,17 @@ class Client(User):
         await message.answer('Выбрите элемент для открытия более подробной информации:', reply_markup=markup)
 
     def _get_timetable(self, user_id: int, is_future: bool) -> List[containers.TimetableEntry]:
-        try:
-            entries = self.timetable_provider.get_by_user_id(user_id)
-        except exceptions.TimetableEntryIsNotFound:
-            return []
-
-        now = datetime.today()
-        if is_future:
-            return self._get_future_entries(entries, now)
-
-        return self._get_past_entries(entries, now)
+        # try:
+        #     entries = self.timetable_provider.get_by_user_id(user_id)
+        # except exceptions.TimetableEntryIsNotFound:
+        #     return []
+        #
+        # now = datetime.today()
+        # if is_future:
+        #     return self._get_future_entries(entries, now)
+        #
+        # return self._get_past_entries(entries, now)
+        pass
 
     @staticmethod
     def _get_future_entries(entries, now) -> List[containers.TimetableEntry]:

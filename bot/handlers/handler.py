@@ -1,44 +1,44 @@
 from aiogram import Dispatcher, types
-
-from bot.enums import UserType
-from database.exceptions import UserIsNotFound
-from bot.handlers import AbstractHandler, Calendar
-from bot.handlers.client import Client
-from bot.handlers.worker import Worker
-from bot.view import static, keyboard
-from database import DB, provider
+from scheduler_core import enums, containers, configs
 from wrappers import LoggerWrap
+
+from handlers.abstract_handler import AbstractHandler
+from handlers.calendar import Calendar
+from handlers.client.client import Client
+from handlers.worker.worker import Worker
+from managers.user import UserManager
+from view import static, keyboard
 
 
 class Handler(AbstractHandler):
-    def __init__(self, dispatcher: Dispatcher, db: DB):
+    _user_manager: UserManager
+    _calendar: Calendar
+    _worker: Worker
+    _client: Client
+
+    def __init__(self, dispatcher: Dispatcher, api_connection: configs.ConnectionConfig):
         super().__init__(dispatcher)
 
-        self.user_provider = provider.User(db)
-        self.service_provider = provider.Service(db)
-        self.timetable_provider = provider.Timetable(db)
-
-        self.calendar = Calendar(dispatcher)
-        self.worker = Worker(dispatcher, self.service_provider)
-        self.client = Client(dispatcher, db, self.service_provider, self.calendar)
+        self._user_manager = UserManager(api_connection)
+        self._calendar = Calendar(dispatcher)
+        self._worker = Worker(dispatcher)
+        self._client = Client(dispatcher, self._calendar)
 
     def init(self) -> None:
-        self.dispatcher.register_message_handler(self.__start, commands=['start'])
-        self.calendar.init()
-        self.worker.init()
-        self.client.init()
+        self.dispatcher.register_message_handler(self._start, commands=['start'])
+        # self.calendar.init()
+        # self.worker.init()
+        # self.client.init()
 
-    async def __start(self, message: types.Message):
-        try:
-            user = self.user_provider.get_by_id(message.from_user.id)
-        except UserIsNotFound as e:
-            LoggerWrap().get_logger().exception(e)
-            user = self.user_provider.add(message.from_user)
-
+    async def _start(self, message: types.Message):
+        user = await self._user_manager.get_user(message.from_user)
         LoggerWrap().get_logger().info(user)
-        if user.type == UserType.WORKER:
-            reply_markup = keyboard.create_reply_keyboard_markup(self.worker.get_main_buttons())
+        await self.show_main_page(message, user)
+
+    async def show_main_page(self, message: types.Message, user: containers.User):
+        if user.type == enums.UserType.WORKER:
+            reply_markup = keyboard.create_reply_keyboard_markup(self._worker.get_main_buttons())
         else:
-            reply_markup = keyboard.create_reply_keyboard_markup(self.client.get_main_buttons())
+            reply_markup = keyboard.create_reply_keyboard_markup(self._client.get_main_buttons())
 
         await message.answer(static.SELECT_ITEM, reply_markup=reply_markup)

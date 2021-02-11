@@ -3,8 +3,8 @@ from typing import Tuple
 
 from aiogram import types
 
-from bot.handlers import AbstractHandler
-from bot.view import keyboard, static
+from handlers.abstract_handler import AbstractHandler
+from view import keyboard, static
 
 
 class User(AbstractHandler):

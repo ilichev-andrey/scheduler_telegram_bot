@@ -6,8 +6,8 @@ from dateutil.relativedelta import relativedelta
 from telegram_bot_calendar import WMonthTelegramCalendar, LSTEP
 from telegram_bot_calendar.static import Locales
 
-from bot.handlers import AbstractHandler
 from bot.view import static
+from handlers.abstract_handler import AbstractHandler
 
 
 class Calendar(AbstractHandler):
@@ -22,7 +22,7 @@ class Calendar(AbstractHandler):
             max_date=today + relativedelta(months=months_future_count))
 
     def init(self) -> None:
-        self.dispatcher.register_callback_query_handler(self.__handle_callback_query, self.calendar.func(), state='*')
+        self.dispatcher.register_callback_query_handler(self._handle_callback_query, self.calendar.func(), state='*')
 
     async def open(self, message: types.Message, on_selected_date: callable = None, include_dates: Set[date] = None):
         self.on_selected_date = on_selected_date
@@ -31,7 +31,7 @@ class Calendar(AbstractHandler):
         calendar, step = self.calendar.build()
         await self.dispatcher.bot.send_message(message.chat.id, f'{static.SELECT} {LSTEP[step]}', reply_markup=calendar)
 
-    async def __handle_callback_query(self, query):
+    async def _handle_callback_query(self, query):
         result, key, step = self.calendar.process(query.data)
 
         if not result and key:
