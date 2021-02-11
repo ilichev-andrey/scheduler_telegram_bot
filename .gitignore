@@ -5,4 +5,4 @@ logs
 tmp
 tests
 
-config.js
+config.json

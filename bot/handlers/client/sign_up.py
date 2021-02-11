@@ -113,13 +113,11 @@ class SignUp(AbstractHandler):
         await client.ClientRequestStates.waiting_time.set()
 
     async def _add_timetable_entry(self, message: types.Message, state: FSMContext):
-        await state.update_data(chosen_time=message.text.lower())
+        chosen_time = message.text.lower()
         user_data = await state.get_data()
         LoggerWrap().get_logger().info(f'Выбраны параметры: {user_data}')
 
-        timetable_entry = timetable.get_by_day_time(
-            user_data['timetable_day'],
-            time.fromisoformat(user_data['chosen_time']))
+        timetable_entry = timetable.get_by_day_time(user_data['timetable_day'], time.fromisoformat(chosen_time))
 
         service = services.get_by_name(user_data['services'], user_data['chosen_service'])
         self.timetable_provider.update_entry(timetable_entry.id, service.id, message.from_user.id)

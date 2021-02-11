@@ -5,7 +5,7 @@ import os
 from bot import Service
 from wrappers import logger
 
-CONFIG_FILE = 'config.js'
+CONFIG_FILE = 'config.json'
 
 
 def main():

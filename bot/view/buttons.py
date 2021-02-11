@@ -10,6 +10,7 @@ class Buttons(Enum):
     WORKER_SHOW_SERVICES = 'Показать все'
     WORKER_ADD_SERVICES = 'Добавить'
     WORKER_DELETE_SERVICES = 'Удалить'
+    WORKER_EDIT_SERVICES = 'Редактировать'
 
     CLIENT_TIMETABLE = 'Показать мои записи'
     CLIENT_ADD_TIMETABLE_ENTRY = 'Записаться'

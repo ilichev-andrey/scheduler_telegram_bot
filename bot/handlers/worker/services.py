@@ -16,6 +16,8 @@ class ServiceStates(StatesGroup):
 
 
 class Services(AbstractHandler):
+    BUTTON_PREFIX = 'svc_btn_'
+
     def __init__(self, dispatcher: Dispatcher, service_provider: provider.Service):
         super().__init__(dispatcher)
         self.service_provider = service_provider
@@ -34,6 +36,9 @@ class Services(AbstractHandler):
             self._add,
             state=ServiceStates.input_name,
             content_types=types.ContentTypes.TEXT)
+        self.dispatcher.register_callback_query_handler(
+            self._delete,
+            lambda c: c.data and c.data.startswith(self.BUTTON_PREFIX))
 
     @staticmethod
     async def _show_actions(message: types.Message):
@@ -53,7 +58,11 @@ class Services(AbstractHandler):
 
         reply_markup = types.InlineKeyboardMarkup()
         for service in service_list:
-            reply_markup.add(types.InlineKeyboardButton(text=service.name, callback_data=service.name))
+            reply_markup.row(
+                types.InlineKeyboardButton(text=service.name, callback_data=service.name),
+                types.InlineKeyboardButton(
+                    text=f'☜ {Buttons.WORKER_DELETE_SERVICES.value}',
+                    callback_data=f'{self.BUTTON_PREFIX}{service.id}'))
 
         await message.answer('Ваши услуги', reply_markup=reply_markup)
 
@@ -76,3 +85,12 @@ class Services(AbstractHandler):
 
         await state.finish()
         await message.answer(f'{static.SERVICE_ADDED} {service_name}')
+
+    async def _delete(self, query: types.CallbackQuery):
+        service_id = query.data.removeprefix(self.BUTTON_PREFIX)
+        await self.dispatcher.bot.send_message(
+            query.message.chat.id,
+            text='Нажата вторая кнопка',
+            reply_markup=keyboard.create_reply_keyboard_markup((
+                Buttons.WORKER_EDIT_SERVICES.value,
+                Buttons.WORKER_DELETE_SERVICES.value)))
