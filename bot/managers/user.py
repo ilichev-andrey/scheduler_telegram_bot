@@ -1,18 +1,18 @@
+from typing import List
+
 from aiogram import types
-from scheduler_core import configs, containers, enums, net
+from scheduler_core import containers, enums
 from scheduler_core.command_responses.get_user import GetUserResponse
+from scheduler_core.command_responses.get_workers import GetWorkersResponse
 from scheduler_core.commands.add_user import AddUserCommand
 from scheduler_core.commands.get_user import GetUserCommand
+from scheduler_core.commands.get_workers import GetWorkersCommand
 
 import exceptions
+from managers.manager import Manager
 
 
-class UserManager(object):
-    _connection_config = configs.ConnectionConfig
-
-    def __init__(self, api_connection: configs.ConnectionConfig):
-        self._connection_config = api_connection
-
+class UserManager(Manager):
     async def add(self, tg_user: types.User) -> containers.User:
         """
         :raises:
@@ -26,10 +26,12 @@ class UserManager(object):
         )
 
         command = AddUserCommand(user=user)
-        response = await net.send_command(command, self._connection_config.host, self._connection_config.port)
+        response = await self._send_command(command)
 
         if response.status != enums.CommandStatus.SUCCESSFUL_EXECUTION:
-            raise exceptions.ApiCommandExecutionError(f'Не удалось добавить пользователя по данным из telegram: {user}')
+            raise exceptions.ApiCommandExecutionError(
+                f'Не удалось добавить пользователя по данным из telegram: {user}, response={response}'
+            )
 
         return user
 
@@ -40,7 +42,7 @@ class UserManager(object):
         """
 
         command = GetUserCommand(telegram_id=tg_user.id)
-        response = await net.send_command(command, self._connection_config.host, self._connection_config.port)
+        response = await self._send_command(command)
 
         if response.status == enums.CommandStatus.SUCCESSFUL_EXECUTION:
             if isinstance(response, GetUserResponse):
@@ -48,4 +50,21 @@ class UserManager(object):
         if response.status == enums.CommandStatus.USER_IS_NOT_FOUND:
             return await self.add(tg_user)
 
-        raise exceptions.ApiCommandExecutionError(f'Не удалось получить пользователя по данным из telegram: {tg_user}')
+        raise exceptions.ApiCommandExecutionError(
+            'Не удалось получить пользователя по данным из telegram: {tg_user}, response={response}'
+        )
+
+    async def get_workers(self) -> List[containers.User]:
+        """
+        :raises:
+            ApiCommandExecutionError если не удалось получить пользователя
+        """
+
+        response = await self._send_command(GetWorkersCommand())
+
+        if response.status == enums.CommandStatus.SUCCESSFUL_EXECUTION:
+            if isinstance(response, GetWorkersResponse):
+                return response.workers
+
+        raise exceptions.ApiCommandExecutionError(f'Не удалось получить работников. response={response}')
+

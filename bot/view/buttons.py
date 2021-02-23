@@ -1,4 +1,4 @@
-from enum import Enum, unique
+from enum import Enum
 
 
 class Buttons(Enum):
@@ -21,7 +21,8 @@ class Buttons(Enum):
     NEXT_STEP = 'Далее'
     RESUME = 'Продолжить'
     CANCEL = 'Отмена'
+    BACK_TO_HOME = 'Вернуться в глувное меню'
 
 
 # Текст кнопок должен быть уникальный, т.к. на них подвешиваются разные события
-unique(Buttons)
+# unique(Buttons)

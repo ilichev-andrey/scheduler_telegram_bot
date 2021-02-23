@@ -86,7 +86,7 @@ class Services(AbstractHandler):
         pass
 
     async def _delete(self, query: types.CallbackQuery):
-        service_id = query.data.removeprefix(self.BUTTON_PREFIX)
+        # service_id = query.data.removeprefix(self.BUTTON_PREFIX)
         await self.dispatcher.bot.send_message(
             query.message.chat.id,
             text='Нажата вторая кнопка',

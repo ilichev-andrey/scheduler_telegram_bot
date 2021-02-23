@@ -1,123 +1,199 @@
+from datetime import datetime, time
+from typing import List
+
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
+from scheduler_core import containers
 from wrappers import LoggerWrap
 
+import converter
 import exceptions
+from handlers import states, handler
 from handlers.abstract_handler import AbstractHandler
 from handlers.calendar import Calendar
-from handlers.client import client
+from managers.service import ServiceManager
+from managers.timetable import TimetableManager
+from managers.user import UserManager
 from view import static, keyboard
 from view.buttons import Buttons
 
 
 class SignUp(AbstractHandler):
-    def __init__(self, dispatcher: Dispatcher, calendar_handler: Calendar):
-        super().__init__(dispatcher)
+    _service_manager: ServiceManager
+    _timetable_manager: TimetableManager
+    _user_manager: UserManager
+    _calendar: Calendar
 
-        self.calendar = calendar_handler
+    def __init__(self, dispatcher: Dispatcher, service_manager: ServiceManager, timetable_manager: TimetableManager,
+                 user_manager: UserManager, calendar_handler: Calendar):
+        super().__init__(dispatcher)
+        self._service_manager = service_manager
+        self._timetable_manager = timetable_manager
+        self._user_manager = user_manager
+        self._calendar = calendar_handler
 
     def init(self) -> None:
         self.dispatcher.register_message_handler(
             self._select_service,
             lambda message: message.text == Buttons.CLIENT_ADD_TIMETABLE_ENTRY.value,
-            state='*')
+            state=states.ClientStates.main_page,
+            content_types=types.ContentTypes.TEXT
+        )
         self.dispatcher.register_message_handler(
             self._select_date,
-            state=client.ClientRequestStates.waiting_service,
-            content_types=types.ContentTypes.TEXT)
+            state=states.SignUpStates.select_date,
+            content_types=types.ContentTypes.TEXT
+        )
         self.dispatcher.register_message_handler(
             self._select_time,
-            state=client.ClientRequestStates.waiting_date,
-            content_types=types.ContentTypes.TEXT)
+            state=states.SignUpStates.select_time,
+            content_types=types.ContentTypes.TEXT
+        )
         self.dispatcher.register_message_handler(
             self._add_timetable_entry,
-            state=client.ClientRequestStates.waiting_time,
-            content_types=types.ContentTypes.TEXT)
-        self.dispatcher.register_message_handler(
-            self._cancel,
-            lambda message: message.text == Buttons.CANCEL.value,
-            state=client.ClientRequestStates.all_states,
-            content_types=types.ContentTypes.TEXT)
+            state=states.SignUpStates.add_timetable_entry,
+            content_types=types.ContentTypes.TEXT
+        )
 
-    async def _error(self, e: exceptions.BaseBotException, message: types.Message, state: FSMContext):
-        LoggerWrap().get_logger().exception(e)
-        await self._cancel(message, state)
-        await message.answer(static.INTERNAL_ERROR)
-
-    @staticmethod
-    async def _cancel(message: types.Message, state: FSMContext):
-        await state.reset_state()
-        await message.answer(static.START, reply_markup=types.ReplyKeyboardRemove())
+    async def _select_worker(self, message: types.Message, state: FSMContext):
+        """
+        Получает от модуля core первого работника (хардкод, для того чтобы не давать пользователю выбора,
+        потому то пока есть только один работник)
+        """
+        try:
+            workers = await self._user_manager.get_workers()
+        except exceptions.ApiCommandExecutionError as e:
+            LoggerWrap().get_logger().exception(e)
+            await message.answer(static.INTERNAL_ERROR)
+            await handler.cancel(message, state)
+        else:
+            await state.update_data(data={'worker': workers[0]})
 
     async def _select_service(self, message: types.Message, state: FSMContext):
         try:
-            service_list = self.service_provider.get()
-        except exceptions.ServiceIsNotFound as e:
-            await self._error(e, message, state)
+            service_list = await self._service_manager.get()
+        except exceptions.ApiCommandExecutionError as e:
+            LoggerWrap().get_logger().exception(e)
+            await message.answer(static.INTERNAL_ERROR)
+            await handler.cancel(message, state)
             return
 
-        await state.update_data(services=service_list)
-        button_names = (*(service.name for service in service_list), Buttons.CANCEL.value)
+        await state.update_data(data={'services': service_list})
+        button_names = (service.name for service in service_list)
         await message.answer(
             static.SELECT_ITEM,
-            reply_markup=keyboard.create_reply_keyboard_markup(button_names))
+            reply_markup=keyboard.create_reply_keyboard_markup(button_names)
+        )
 
-        await client.ClientRequestStates.waiting_service.set()
+        await states.SignUpStates.select_date.set()
 
     async def _select_date(self, message: types.Message, state: FSMContext):
-        await state.update_data(chosen_service=message.text.lower())
+        await self._select_worker(message, state)
 
-        # try:
-        #     entries = self.timetable_provider.get()
-        # except exceptions.TimetableEntryIsNotFound:
-        #     await message.answer(static.BUSY)
-        #     await self._cancel(message, state)
-        #     return
-        #
-        # await message.answer(static.SELECT_DATE)
-        # await self.calendar.open(
-        #     message,
-        #     on_selected_date=lambda chosen_date: self._on_selected_date(chosen_date, message, state),
-        #     include_dates=set(entry.start_dt.date() for entry in entries))
+        user_data = await state.get_data()
+
+        service = self._get_service_by_name(user_data['services'], message.text.lower())
+        await state.update_data(data={'chosen_service': service})
+        try:
+            entries = await self._timetable_manager.get_free_slots(
+                date_ranges=containers.DateRanges(start_dt=datetime.today()),
+                services=frozenset((service.id,)),
+                worker_id=user_data.get('worker', containers.User).id
+            )
+        except exceptions.ApiCommandExecutionError as e:
+            LoggerWrap().get_logger().exception(str(e))
+            await message.answer(static.INTERNAL_ERROR)
+            await handler.cancel(message, state)
+            return
+
+        if not entries:
+            await message.answer(static.BUSY)
+            return
+
+        await state.update_data(data={'timetable_entries': entries})
+        await message.answer(static.SELECT_DATE)
+        await self._calendar.open(
+            message,
+            on_selected_date=lambda chosen_date: self._on_selected_date(chosen_date, message, state),
+            include_dates=set(entry.start_dt.date() for entry in entries)
+        )
 
     @staticmethod
     async def _on_selected_date(chosen_date: str, message: types.Message, state: FSMContext):
-        LoggerWrap().get_logger().info(f'получена дата {chosen_date}')
-        await state.update_data(chosen_date=chosen_date)
-        await client.ClientRequestStates.waiting_date.set()
+        LoggerWrap().get_logger().info(f'Получена дата {chosen_date}')
+        await state.update_data(data={'chosen_date': chosen_date})
+        await states.SignUpStates.select_time.set()
 
-        button_names = (f'{static.SELECTED_DATE} {chosen_date}. {static.CLICK_TO_CONTINUE}', Buttons.CANCEL.value)
+        button_names = (static.get_selected_date_text(chosen_date),)
         await message.answer(
             static.SELECT_ITEM,
-            reply_markup=keyboard.create_reply_keyboard_markup(button_names))
+            reply_markup=keyboard.create_reply_keyboard_markup(button_names)
+        )
 
     async def _select_time(self, message: types.Message, state: FSMContext):
-        # user_data = await state.get_data()
-        # try:
-        #     timetable_day = self.timetable_provider.get_by_day(user_data['chosen_date'])
-        # except exceptions.TimetableEntryIsNotFound as e:
-        #     await self._error(e, message, state)
-        #     return
-        #
-        # await state.update_data(timetable_day=timetable_day)
-        # times_gen = (converter.to_human_time(entry.start_dt.time()) for entry in timetable_day)
-        # button_names = (*times_gen, Buttons.CANCEL.value)
-        # await message.answer(
-        #     static.SELECT_ITEM,
-        #     reply_markup=keyboard.create_reply_keyboard_markup(button_names))
-        #
-        # await client.ClientRequestStates.waiting_time.set()
-        pass
+        user_data = await state.get_data()
+        timetable_day = self._timetable_manager.filter_by_day(user_data['timetable_entries'], user_data['chosen_date'])
+        await state.update_data(data={'timetable_day': timetable_day})
+
+        button_names_gen = (converter.to_human_time(entry.start_dt.time()) for entry in timetable_day)
+        await message.answer(
+            static.SELECT_ITEM,
+            reply_markup=keyboard.create_reply_keyboard_markup(button_names_gen)
+        )
+
+        await states.SignUpStates.add_timetable_entry.set()
 
     async def _add_timetable_entry(self, message: types.Message, state: FSMContext):
-        # chosen_time = message.text.lower()
-        # user_data = await state.get_data()
-        # LoggerWrap().get_logger().info(f'Выбраны параметры: {user_data}')
-        #
-        # timetable_entry = timetable.get_by_day_time(user_data['timetable_day'], time.fromisoformat(chosen_time))
-        #
-        # service = services.get_by_name(user_data['services'], user_data['chosen_service'])
-        # self.timetable_provider.update_entry(timetable_entry.id, service.id, message.from_user.id)
-        # await message.answer(f'{static.ADDED} на услугу {service.name} в {timetable_entry.start_dt}')
-        # await state.finish()
-        pass
+        chosen_time = message.text.lower()
+        user_data = await state.get_data()
+        LoggerWrap().get_logger().info(f'Выбраны параметры: {user_data}')
+
+        try:
+            entry = self._get_timetable_entry_by_time(
+                entries=user_data['timetable_day'],
+                tm=converter.from_human_time(chosen_time)
+            )
+        except exceptions.IncorrectData as e:
+            LoggerWrap().get_logger().exception(str(e))
+            await message.answer(static.INTERNAL_ERROR)
+            await handler.cancel(message, state)
+            return
+
+        service: containers.Service = user_data['chosen_service']
+        user: containers.User = user_data['user']
+        try:
+            await self._timetable_manager.sign_up_client(
+                entry_ids=frozenset((entry.id,)),
+                service_ids=frozenset((service.id,)),
+                client_id=user.id
+            )
+        except exceptions.ApiCommandExecutionError as e:
+            LoggerWrap().get_logger().exception(str(e))
+            await message.answer(static.INTERNAL_ERROR)
+            await handler.cancel(message, state)
+            return
+
+        await states.BotStates.client_page.back_to_main_page.set()
+        await message.answer(static.get_successful_registration_text(service.name, entry.start_dt))
+        await message.answer(
+            static.SELECT_ITEM,
+            reply_markup=keyboard.create_reply_keyboard_markup((Buttons.BACK_TO_HOME.value,), False)
+        )
+
+    @staticmethod
+    def _get_timetable_entry_by_time(entries: List[containers.TimetableEntry], tm: time) -> containers.TimetableEntry:
+        for entry in entries:
+            if entry.start_dt.time() == tm:
+                return entry
+
+        raise exceptions.IncorrectData('Не удалось найти слот в расписании указанному по времени'
+                                       f'entries={entries}, time={tm}')
+
+    @staticmethod
+    def _get_service_by_name(services: List[containers.Service], service_name: str) -> containers.Service:
+        for service in services:
+            if service.name == service_name:
+                return service
+
+        raise exceptions.IncorrectData(f'Не удалось найти услугу по имени. services={services}, '
+                                       f'service_name={service_name}')

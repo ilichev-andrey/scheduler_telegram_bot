@@ -6,3 +6,11 @@ class BaseBotException(Exception):
 class ApiCommandExecutionError(BaseBotException):
     """Не удалось выполнить команду в другом модуле, отправленную через API"""
     pass
+
+
+class IncorrectData(BaseBotException):
+    pass
+
+
+class TimetableSlotAlreadyBusy(BaseBotException):
+    pass
