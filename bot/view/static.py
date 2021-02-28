@@ -11,9 +11,9 @@ BOT_DESCRIPTION = f'Приветствую! Я бот, созданный для
 INTERNAL_ERROR = 'Ой, что-то пошло не так. Повторите попытку позже.'
 
 SELECT = 'Выберите'
-SELECT_ITEM = f'{SELECT} пункт:'
-SELECT_DATE = f'{SELECT} дату:'
-SELECT_TIME = f'{SELECT} время:'
+SELECT_ITEM = f'{SELECT} пункт'
+SELECT_DATE = f'{SELECT} дату'
+SELECT_TIME = f'{SELECT} время'
 
 SELECTED = 'Вы выбрали'
 SELECTED_SERVICE = f'{SELECTED} услугу:'
@@ -30,6 +30,9 @@ SERVICE_EXISTS = 'Услуга уже существует'
 
 START = 'Нажмите /start, чтобы начать'
 BUSY = 'Нет свободных мест'
+
+SEND_PHONE_NUMBER = 'Отправить номер телефона'
+SEND_LOCATION = 'Отправить геолокацию'
 
 
 def get_successful_registration_text(service_name: str, dt: datetime) -> str:

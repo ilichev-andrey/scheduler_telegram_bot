@@ -4,9 +4,11 @@ from aiogram import types
 from scheduler_core import containers, enums
 from scheduler_core.command_responses.get_user import GetUserResponse
 from scheduler_core.command_responses.get_workers import GetWorkersResponse
+from scheduler_core.command_responses.update_user import UpdateUserResponse
 from scheduler_core.commands.add_user import AddUserCommand
 from scheduler_core.commands.get_user import GetUserCommand
 from scheduler_core.commands.get_workers import GetWorkersCommand
+from scheduler_core.commands.update_user import UpdateUserCommand
 
 import exceptions
 from managers.manager import Manager
@@ -65,6 +67,22 @@ class UserManager(Manager):
         if response.status == enums.CommandStatus.SUCCESSFUL_EXECUTION:
             if isinstance(response, GetWorkersResponse):
                 return response.workers
+
+        raise exceptions.ApiCommandExecutionError(f'Не удалось получить работников. response={response}')
+
+    async def update(self, user_id: int, phone_number: str):
+        """
+        :raises:
+            ApiCommandExecutionError если не удалось обновить данные пользователя
+        """
+
+        response = await self._send_command(
+            UpdateUserCommand(user=containers.User(id=user_id, phone_number=phone_number))
+        )
+
+        if response.status == enums.CommandStatus.SUCCESSFUL_EXECUTION:
+            if isinstance(response, UpdateUserResponse):
+                return
 
         raise exceptions.ApiCommandExecutionError(f'Не удалось получить работников. response={response}')
 

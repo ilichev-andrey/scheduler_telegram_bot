@@ -36,23 +36,24 @@ class SignUp(AbstractHandler):
         self.dispatcher.register_message_handler(
             self._select_service,
             lambda message: message.text == Buttons.CLIENT_ADD_TIMETABLE_ENTRY.value,
-            state=states.ClientStates.main_page,
-            content_types=types.ContentTypes.TEXT
+            state=states.ClientStates.main_page
         )
         self.dispatcher.register_message_handler(
             self._select_date,
-            state=states.SignUpStates.select_date,
-            content_types=types.ContentTypes.TEXT
+            state=states.SignUpStates.select_date
         )
         self.dispatcher.register_message_handler(
             self._select_time,
-            state=states.SignUpStates.select_time,
-            content_types=types.ContentTypes.TEXT
+            state=states.SignUpStates.select_time
+        )
+        self.dispatcher.register_message_handler(
+            self._set_phone_number,
+            state=states.SignUpStates.set_phone_number,
+            content_types=types.ContentTypes.CONTACT
         )
         self.dispatcher.register_message_handler(
             self._add_timetable_entry,
-            state=states.SignUpStates.add_timetable_entry,
-            content_types=types.ContentTypes.TEXT
+            state=states.SignUpStates.add_timetable_entry
         )
 
     async def _select_worker(self, message: types.Message, state: FSMContext):
@@ -122,12 +123,33 @@ class SignUp(AbstractHandler):
     async def _on_selected_date(chosen_date: date, message: types.Message, state: FSMContext):
         LoggerWrap().get_logger().info(f'Получена дата {chosen_date}')
         await state.update_data(data={'chosen_date': chosen_date})
-        await states.SignUpStates.select_time.set()
 
-        button_names = (static.get_selected_date_text(chosen_date),)
+        user = await handler.get_user(state)
+        if user.phone_number is None:
+            await states.SignUpStates.set_phone_number.set()
+            await message.answer(
+                static.SELECT_ITEM,
+                reply_markup=keyboard.create_info_keyboard_markup(request_contact=True)
+            )
+        else:
+            await states.SignUpStates.select_time.set()
+            button_names = (static.get_selected_date_text(chosen_date),)
+            await message.answer(static.SELECT_ITEM, reply_markup=keyboard.create_reply_keyboard_markup(button_names))
+
+    async def _set_phone_number(self, message: types.Message, state: FSMContext):
+        user = await handler.get_user(state)
+        try:
+            await self._user_manager.update(user_id=user.id, phone_number=message.contact.phone_number)
+        except exceptions.IncorrectData as e:
+            LoggerWrap().get_logger().exception(str(e))
+            await message.answer(static.INTERNAL_ERROR)
+            await handler.cancel(message, state)
+            return
+
+        await states.SignUpStates.select_time.set()
         await message.answer(
             static.SELECT_ITEM,
-            reply_markup=keyboard.create_reply_keyboard_markup(button_names)
+            reply_markup=keyboard.create_reply_keyboard_markup((static.SELECT_TIME,))
         )
 
     async def _select_time(self, message: types.Message, state: FSMContext):

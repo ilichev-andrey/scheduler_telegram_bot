@@ -4,6 +4,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 class SignUpStates(StatesGroup):
     select_date = State()
     select_time = State()
+    set_phone_number = State()
     add_timetable_entry = State()
 
 
