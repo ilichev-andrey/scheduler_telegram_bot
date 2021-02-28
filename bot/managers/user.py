@@ -51,7 +51,7 @@ class UserManager(Manager):
             return await self.add(tg_user)
 
         raise exceptions.ApiCommandExecutionError(
-            'Не удалось получить пользователя по данным из telegram: {tg_user}, response={response}'
+            f'Не удалось получить пользователя по данным из telegram: {tg_user}, response={response}'
         )
 
     async def get_workers(self) -> List[containers.User]:

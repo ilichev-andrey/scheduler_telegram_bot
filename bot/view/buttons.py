@@ -21,6 +21,7 @@ class Buttons(Enum):
     NEXT_STEP = 'Далее'
     RESUME = 'Продолжить'
     CANCEL = 'Отмена'
+    COMPLETE = 'Завершить'
     BACK_TO_HOME = 'Вернуться в глувное меню'
 
 

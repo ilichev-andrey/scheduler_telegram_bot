@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 from scheduler_core import enums, containers, configs
 from wrappers import LoggerWrap
 
+import exceptions
 from handlers import states
 from handlers.abstract_handler import AbstractHandler
 from handlers.calendar import Calendar
@@ -15,9 +16,13 @@ from view import static, keyboard
 from view.buttons import Buttons
 
 
-async def cancel(message: types.Message, state: FSMContext):
+async def cancel(message: types.Message, state: FSMContext) -> None:
+    await reset(message, static.START, state)
+
+
+async def reset(message: types.Message, message_text: str, state: FSMContext) -> None:
     await state.finish()
-    await message.answer(static.START, reply_markup=types.ReplyKeyboardRemove())
+    await message.answer(message_text, reply_markup=types.ReplyKeyboardRemove(), parse_mode='Markdown')
 
 
 class Handler(AbstractHandler):
@@ -40,10 +45,15 @@ class Handler(AbstractHandler):
                               self._calendar)
 
     def init(self) -> None:
-        self.dispatcher.register_message_handler(self._start, commands=['start'])
+        self.dispatcher.register_message_handler(self._start, commands=['start'], state='*')
         self.dispatcher.register_message_handler(
             cancel,
-            lambda message: message.text == Buttons.CANCEL.value,
+            lambda message: message.text == Buttons.COMPLETE.value,
+            state='*'
+        )
+        self.dispatcher.register_message_handler(
+            self._show_main_page,
+            lambda message: message.text == Buttons.BACK_TO_HOME.value,
             state='*'
         )
 
@@ -52,12 +62,24 @@ class Handler(AbstractHandler):
         self._client.init()
 
     async def _start(self, message: types.Message, state: FSMContext):
-        user = await self._user_manager.get_user(message.from_user)
-        LoggerWrap().get_logger().info(user)
-        await state.update_data(data={'user': user})
-        await self._show_main_page(message, user)
+        await reset(message, static.BOT_DESCRIPTION, state)
 
-    async def _show_main_page(self, message: types.Message, user: containers.User):
+        try:
+            user = await self._user_manager.get_user(message.from_user)
+        except exceptions.ApiCommandExecutionError as e:
+            LoggerWrap().get_logger().exception(str(e))
+            await message.answer(static.INTERNAL_ERROR)
+            await cancel(message, state)
+            return
+
+        LoggerWrap().get_logger().info(user)
+        await state.set_data(data={'user': user})
+        await self._show_main_page(message, state)
+
+    async def _show_main_page(self, message: types.Message, state: FSMContext):
+        user: containers.User = (await state.get_data())['user']
+        await state.set_data(data={'user': user})
+
         if user.type == enums.UserType.WORKER:
             buttons = self._worker.get_main_buttons()
             await states.BotStates.worker_page.main_page.set()
@@ -65,4 +87,7 @@ class Handler(AbstractHandler):
             buttons = self._client.get_main_buttons()
             await states.BotStates.client_page.main_page.set()
 
-        await message.answer(static.SELECT_ITEM, reply_markup=keyboard.create_reply_keyboard_markup(buttons))
+        await message.answer(
+            static.SELECT_ITEM,
+            reply_markup=keyboard.create_reply_keyboard_markup(buttons, with_home=False)
+        )

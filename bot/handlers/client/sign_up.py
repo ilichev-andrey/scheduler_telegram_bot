@@ -173,12 +173,8 @@ class SignUp(AbstractHandler):
             await handler.cancel(message, state)
             return
 
-        await states.BotStates.client_page.back_to_main_page.set()
         await message.answer(static.get_successful_registration_text(service.name, entry.start_dt))
-        await message.answer(
-            static.SELECT_ITEM,
-            reply_markup=keyboard.create_reply_keyboard_markup((Buttons.BACK_TO_HOME.value,), False)
-        )
+        await message.answer(static.SELECT_ITEM, reply_markup=keyboard.create_reply_keyboard_markup())
 
     @staticmethod
     def _get_timetable_entry_by_time(entries: List[containers.TimetableEntry], tm: time) -> containers.TimetableEntry:

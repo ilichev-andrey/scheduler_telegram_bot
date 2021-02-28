@@ -13,7 +13,6 @@ class ClientStates(StatesGroup):
     visit_history = State()
     future_visits = State()
     sign_up = SignUpStates
-    back_to_main_page = State()
 
 
 class WorkerStates(StatesGroup):

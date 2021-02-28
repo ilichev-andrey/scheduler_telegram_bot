@@ -97,7 +97,7 @@ class Client(User):
         button_names = (Buttons.CLIENT_TIMETABLE_FUTURE.value, Buttons.CLIENT_TIMETABLE_HISTORY.value)
         await message.answer(
             static.SELECT_ITEM,
-            reply_markup=keyboard.create_reply_keyboard_markup(button_names)
+            reply_markup=keyboard.create_reply_keyboard_markup(button_names, one_time_keyboard=False),
         )
 
     @staticmethod

@@ -1,5 +1,11 @@
 from datetime import datetime
 
+from aiogram.utils.markdown import link
+
+instagram_link = link('dinail58', 'https://instagram.com/dinail58?igshid=6aw9ki1im567')
+
+BOT_DESCRIPTION = f'Приветствую! Я бот, созданный для {instagram_link}'
+
 INTERNAL_ERROR = 'Ой, что-то пошло не так. Повторите попытку позже.'
 
 SELECT = 'Выберите'
