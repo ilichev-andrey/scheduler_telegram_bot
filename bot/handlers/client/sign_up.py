@@ -160,7 +160,7 @@ class SignUp(AbstractHandler):
             return
 
         service: containers.Service = user_data['chosen_service']
-        user: containers.User = user_data['user']
+        user = await handler.get_user(state)
         try:
             await self._timetable_manager.sign_up_client(
                 entry_ids=frozenset((entry.id,)),

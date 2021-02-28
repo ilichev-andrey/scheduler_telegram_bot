@@ -25,6 +25,15 @@ async def reset(message: types.Message, message_text: str, state: FSMContext) ->
     await message.answer(message_text, reply_markup=types.ReplyKeyboardRemove(), parse_mode='Markdown')
 
 
+async def set_user(user: containers.User, state: FSMContext) -> None:
+    await state.update_data(data={'user': user})
+
+
+async def get_user(state: FSMContext) -> containers.User:
+    data = await state.get_data()
+    return data['user']
+
+
 class Handler(AbstractHandler):
     _user_manager: UserManager
     _service_manager: ServiceManager
@@ -73,12 +82,14 @@ class Handler(AbstractHandler):
             return
 
         LoggerWrap().get_logger().info(user)
-        await state.set_data(data={'user': user})
+        await state.reset_data()
+        await set_user(user, state)
         await self._show_main_page(message, state)
 
     async def _show_main_page(self, message: types.Message, state: FSMContext):
-        user: containers.User = (await state.get_data())['user']
-        await state.set_data(data={'user': user})
+        user = await get_user(state)
+        await state.reset_data()
+        await set_user(user, state)
 
         if user.type == enums.UserType.WORKER:
             buttons = self._worker.get_main_buttons()

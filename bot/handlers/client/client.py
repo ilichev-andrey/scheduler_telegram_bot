@@ -1,10 +1,14 @@
+from datetime import datetime
 from typing import Tuple, List
 
 from aiogram import Dispatcher, types
+from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from scheduler_core import containers
+from wrappers import LoggerWrap
 
-from handlers import states
+import exceptions
+from handlers import states, handler
 from handlers.calendar import Calendar
 from handlers.client.sign_up import SignUp
 from handlers.user import User
@@ -53,18 +57,44 @@ class Client(User):
     def get_main_buttons(self) -> Tuple[str, ...]:
         return Buttons.CLIENT_TIMETABLE.value, Buttons.CLIENT_ADD_TIMETABLE_ENTRY.value
 
-    async def _show_timetable_future(self, message: types.Message):
-        entries = self._get_timetable(message.from_user.id, True)
+    async def _show_timetable_future(self, message: types.Message, state: FSMContext):
+        user = await handler.get_user(state)
+        try:
+            entries = await self._timetable_manager.get_client_timetable(user.id)
+        except exceptions.ApiCommandExecutionError as e:
+            LoggerWrap().get_logger().exception(str(e))
+            await message.answer(static.INTERNAL_ERROR)
+            await handler.cancel(message, state)
+            return
+
+        entries = self._get_future_entries(entries)
         if not entries:
             await message.answer('У вас пока нет будущих записей')
             return
 
         entries.sort(key=lambda entry: entry.start_dt)
-        button_names = tuple(self._get_button_name(entry) for entry in entries)
-        await message.answer('Ваши ближайшие записи:', reply_markup=keyboard.create_reply_keyboard_markup(button_names))
+        button_names_gen = (self._get_button_name(entry) for entry in entries)
 
-    async def _show_timetable_history(self, message: types.Message):
-        entries = self._get_timetable(message.from_user.id, False)
+        markup = InlineKeyboardMarkup()
+        for button_name in button_names_gen:
+            markup.add(InlineKeyboardButton(button_name, callback_data='button'))
+
+        await message.answer(
+            'Ваши ближайшие записи:\nМожно изменить запись, нажав на кнопку ниже:',
+            reply_markup=markup
+        )
+
+    async def _show_timetable_history(self, message: types.Message, state: FSMContext):
+        user = await handler.get_user(state)
+        try:
+            entries = await self._timetable_manager.get_client_timetable(user.id)
+        except exceptions.ApiCommandExecutionError as e:
+            LoggerWrap().get_logger().exception(str(e))
+            await message.answer(static.INTERNAL_ERROR)
+            await handler.cancel(message, state)
+            return
+
+        entries = self._get_past_entries(entries)
         if not entries:
             await message.answer('У вас ранее не было записей')
             return
@@ -76,20 +106,10 @@ class Client(User):
         for button_name in button_names_gen:
             markup.add(InlineKeyboardButton(button_name, callback_data='button'))
 
-        await message.answer('Выбрите элемент для открытия более подробной информации:', reply_markup=markup)
-
-    def _get_timetable(self, user_id: int, is_future: bool) -> List[containers.TimetableEntry]:
-        # try:
-        #     entries = self.timetable_provider.get_by_user_id(user_id)
-        # except exceptions.TimetableEntryIsNotFound:
-        #     return []
-        #
-        # now = datetime.today()
-        # if is_future:
-        #     return self._get_future_entries(entries, now)
-        #
-        # return self._get_past_entries(entries, now)
-        pass
+        await message.answer(
+            'Ваши прошедшие записи:\nМожно посмотреть подробную информацию, нажав на кнопку ниже:',
+            reply_markup=markup
+        )
 
     @staticmethod
     async def _show_timetable(message: types.Message):
@@ -101,11 +121,13 @@ class Client(User):
         )
 
     @staticmethod
-    def _get_future_entries(entries, now) -> List[containers.TimetableEntry]:
+    def _get_future_entries(entries: List[containers.TimetableEntry]) -> List[containers.TimetableEntry]:
+        now = datetime.today()
         return [entry for entry in entries if entry.start_dt >= now]
 
     @staticmethod
-    def _get_past_entries(entries, now) -> List[containers.TimetableEntry]:
+    def _get_past_entries(entries: List[containers.TimetableEntry]) -> List[containers.TimetableEntry]:
+        now = datetime.today()
         return [entry for entry in entries if entry.start_dt < now]
 
     @staticmethod

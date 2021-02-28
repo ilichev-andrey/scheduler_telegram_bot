@@ -14,3 +14,7 @@ class IncorrectData(BaseBotException):
 
 class TimetableSlotAlreadyBusy(BaseBotException):
     pass
+
+
+class EmptyTimetable(BaseBotException):
+    pass
