@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import date, datetime, time
 from typing import List
 
 from aiogram import Dispatcher, types
@@ -119,7 +119,7 @@ class SignUp(AbstractHandler):
         )
 
     @staticmethod
-    async def _on_selected_date(chosen_date: str, message: types.Message, state: FSMContext):
+    async def _on_selected_date(chosen_date: date, message: types.Message, state: FSMContext):
         LoggerWrap().get_logger().info(f'Получена дата {chosen_date}')
         await state.update_data(data={'chosen_date': chosen_date})
         await states.SignUpStates.select_time.set()

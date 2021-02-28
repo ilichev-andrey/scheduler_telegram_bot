@@ -1,6 +1,8 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from aiogram.utils.markdown import link
+
+import converter
 
 instagram_link = link('dinail58', 'https://instagram.com/dinail58?igshid=6aw9ki1im567')
 
@@ -31,8 +33,8 @@ BUSY = 'Нет свободных мест'
 
 
 def get_successful_registration_text(service_name: str, dt: datetime) -> str:
-    return f'Вы записаны на услугу {service_name} в {dt}'
+    return f'Вы записаны на услугу {service_name} в {converter.to_human_datetime(dt)}'
 
 
-def get_selected_date_text(selected_date: str) -> str:
-    return f'Вы выбрали дату: {selected_date}. Нажмите для продолжения.'
+def get_selected_date_text(selected_date: date) -> str:
+    return f'Вы выбрали дату: {converter.to_human_date(selected_date)}. Нажмите для продолжения.'

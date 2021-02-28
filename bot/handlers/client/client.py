@@ -7,6 +7,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from scheduler_core import containers
 from wrappers import LoggerWrap
 
+import converter
 import exceptions
 from handlers import states, handler
 from handlers.calendar import Calendar
@@ -132,4 +133,4 @@ class Client(User):
 
     @staticmethod
     def _get_button_name(entry: containers.TimetableEntry):
-        return f'{entry.start_dt} - {entry.service_name}'
+        return f'{converter.to_human_datetime(entry.start_dt)} - {entry.service_name}'
