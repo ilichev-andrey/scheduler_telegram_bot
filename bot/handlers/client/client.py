@@ -7,7 +7,6 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from scheduler_core import containers
 from wrappers import LoggerWrap
 
-import converter
 import exceptions
 from handlers import states, handler
 from handlers.calendar import Calendar
@@ -130,7 +129,3 @@ class Client(User):
     def _get_past_entries(entries: List[containers.TimetableEntry]) -> List[containers.TimetableEntry]:
         now = datetime.today()
         return [entry for entry in entries if entry.start_dt < now]
-
-    @staticmethod
-    def _get_button_name(entry: containers.TimetableEntry):
-        return f'{converter.to_human_datetime(entry.start_dt)} - {entry.service_name}'

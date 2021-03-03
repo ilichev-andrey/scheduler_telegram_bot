@@ -18,6 +18,7 @@ class ClientStates(StatesGroup):
 
 class WorkerStates(StatesGroup):
     main_page = State()
+    timetable_page = State()
 
 
 class BotStates(StatesGroup):

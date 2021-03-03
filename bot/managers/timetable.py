@@ -4,9 +4,11 @@ from typing import FrozenSet, List
 from scheduler_core import containers, enums
 from scheduler_core.command_responses.get_client_timetable import GetClientTimetableResponse
 from scheduler_core.command_responses.get_free_timetable_slots import GetFreeTimetableSlotsResponse
+from scheduler_core.command_responses.get_worker_timetable import GetWorkerTimetableResponse
 from scheduler_core.command_responses.take_timetable_slots import TakeTimetableSlotsResponse
 from scheduler_core.commands.get_client_timetable import GetClientTimetableCommand
 from scheduler_core.commands.get_free_timetable_slots import GetFreeTimetableSlotsCommand
+from scheduler_core.commands.get_worker_timetable import GetWorkerTimetableCommand
 from scheduler_core.commands.take_timetable_slots import TakeTimetableSlotsCommand
 
 import exceptions
@@ -65,6 +67,24 @@ class TimetableManager(Manager):
             raise exceptions.EmptyTimetable()
 
         raise exceptions.ApiCommandExecutionError(f'Не удалось получить расписание клиента. response={response}')
+
+    async def get_worker_timetable(self, worker_id: int, time_type: enums.TimeType,
+                                   time_limit: enums.TimeLimit) -> List[containers.TimetableEntry]:
+        """
+        :raises:
+            ApiCommandExecutionError если не удалось получить расписание работника
+        """
+
+        command = GetWorkerTimetableCommand(worker=worker_id, time_type=time_type, time_limit=time_limit)
+        response = await self._send_command(command)
+
+        if response.status == enums.CommandStatus.SUCCESSFUL_EXECUTION:
+            if isinstance(response, GetWorkerTimetableResponse):
+                return response.timetable_entries
+        if response.status == enums.CommandStatus.NO_TIMETABLE_ENTRIES_FOUND:
+            raise exceptions.EmptyTimetable()
+
+        raise exceptions.ApiCommandExecutionError(f'Не удалось получить расписание работника. response={response}')
 
     @staticmethod
     def filter_by_day(entries: List[containers.TimetableEntry], day: date) -> List[containers.TimetableEntry]:

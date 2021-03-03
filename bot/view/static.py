@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 from aiogram.utils.markdown import link
+from scheduler_core import enums
 
 import converter
 
@@ -35,9 +36,33 @@ SEND_PHONE_NUMBER = 'Отправить номер телефона'
 SEND_LOCATION = 'Отправить геолокацию'
 
 
+_DETAILED_INFORMATION = 'Можно посмотреть подробную информацию, нажав на кнопку ниже:'
+
+
 def get_successful_registration_text(service_name: str, dt: datetime) -> str:
     return f'Вы записаны на услугу {service_name} в {converter.to_human_datetime(dt)}'
 
 
 def get_selected_date_text(selected_date: date) -> str:
     return f'Вы выбрали дату: {converter.to_human_date(selected_date)}. Нажмите для продолжения.'
+
+
+def get_worker_timetable_title(time_type: enums.TimeType, time_limit: enums.TimeLimit, is_found: bool = True) -> str:
+    title = ''
+    if time_limit == enums.TimeLimit.DAY:
+        title = 'текущий день:'
+    else:
+        if time_type == enums.TimeType.PAST:
+            title = 'прошедш'
+        if time_type == enums.TimeType.FUTURE:
+            title = 'будущ'
+
+        if time_limit == enums.TimeLimit.WEEK:
+            title = f'{title}ую неделю:'
+        if time_limit == enums.TimeLimit.MONTH:
+            title = f'{title}ий месяц:'
+
+    if is_found:
+        return f'Записи на {title}\n{_DETAILED_INFORMATION}'
+    else:
+        return f'Нет записей на {title}'
