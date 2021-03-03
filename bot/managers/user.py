@@ -2,6 +2,7 @@ from typing import List
 
 from aiogram import types
 from scheduler_core import containers, enums
+from scheduler_core.command_responses.add_user import AddUserResponse
 from scheduler_core.command_responses.get_user import GetUserResponse
 from scheduler_core.command_responses.get_workers import GetWorkersResponse
 from scheduler_core.command_responses.update_user import UpdateUserResponse
@@ -30,12 +31,13 @@ class UserManager(Manager):
         command = AddUserCommand(user=user)
         response = await self._send_command(command)
 
-        if response.status != enums.CommandStatus.SUCCESSFUL_EXECUTION:
-            raise exceptions.ApiCommandExecutionError(
-                f'Не удалось добавить пользователя по данным из telegram: {user}, response={response}'
-            )
+        if response.status == enums.CommandStatus.SUCCESSFUL_EXECUTION:
+            if isinstance(response, AddUserResponse):
+                return response.user
 
-        return user
+        raise exceptions.ApiCommandExecutionError(
+            f'Не удалось добавить пользователя по данным из telegram: {user}, response={response}'
+        )
 
     async def get_user(self, tg_user: types.User) -> containers.User:
         """
