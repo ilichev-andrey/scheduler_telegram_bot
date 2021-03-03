@@ -1,30 +1,40 @@
-from typing import Tuple
+from typing import Tuple, List
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from scheduler_core import enums
+from scheduler_core import enums, containers
 from wrappers import LoggerWrap
 
 import exceptions
 from handlers import states, handler
+from handlers.calendar import Calendar
 from handlers.user import User
 from handlers.worker.services import Services
+from handlers.worker.sign_up import WorkerSignUp
 from managers.service import ServiceManager
 from managers.timetable import TimetableManager
+from managers.user import UserManager
 from view import static, keyboard
 from view.buttons import Buttons
+
+
+def _filter_busy_slots(entries: List[containers.TimetableEntry]) -> List[containers.TimetableEntry]:
+    return [entry for entry in entries if entry.client_id is not None]
 
 
 class Worker(User):
     _service_manager: ServiceManager
     _timetable_manager: TimetableManager
     _services: Services
+    _sign_up: WorkerSignUp
 
-    def __init__(self, dispatcher: Dispatcher, service_manager: ServiceManager, timetable_manager: TimetableManager):
+    def __init__(self, dispatcher: Dispatcher, service_manager: ServiceManager, timetable_manager: TimetableManager,
+                 user_manager: UserManager, calendar_handler: Calendar):
         super().__init__(dispatcher)
         self._timetable_manager = timetable_manager
         self._services = Services(dispatcher, service_manager)
+        self._sign_up = WorkerSignUp(dispatcher, service_manager, timetable_manager, user_manager, calendar_handler)
 
     def init(self) -> None:
         self._dispatcher.register_message_handler(
@@ -45,6 +55,7 @@ class Worker(User):
             content_types=types.ContentTypes.TEXT
         )
         self._services.init()
+        self._sign_up.init()
 
     def get_main_buttons(self) -> Tuple[str, ...]:
         return Buttons.WORKER_TIMETABLE.value, Buttons.WORKER_ADD_TIMETABLE_ENTRY.value, Buttons.WORKER_SERVICES.value
@@ -77,6 +88,7 @@ class Worker(User):
         except exceptions.EmptyTimetable:
             entries = []
 
+        entries = _filter_busy_slots(entries)
         if not entries:
             await message.answer(static.get_worker_timetable_title(time_type, time_limit, is_found=False))
             return

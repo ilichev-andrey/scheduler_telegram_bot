@@ -49,9 +49,12 @@ class Handler(AbstractHandler):
         self._timetable_manager = TimetableManager(api_connection)
 
         self._calendar = Calendar(dispatcher)
-        self._worker = Worker(dispatcher, self._service_manager, self._timetable_manager)
-        self._client = Client(dispatcher, self._service_manager, self._timetable_manager, self._user_manager,
-                              self._calendar)
+        self._worker = Worker(
+            dispatcher, self._service_manager, self._timetable_manager, self._user_manager, self._calendar
+        )
+        self._client = Client(
+            dispatcher, self._service_manager, self._timetable_manager, self._user_manager, self._calendar
+        )
 
     def init(self) -> None:
         self._dispatcher.register_message_handler(self._start, commands=['start'], state='*')

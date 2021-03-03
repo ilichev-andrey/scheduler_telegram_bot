@@ -10,7 +10,7 @@ from wrappers import LoggerWrap
 import exceptions
 from handlers import states, handler
 from handlers.calendar import Calendar
-from handlers.client.sign_up import SignUp
+from handlers.client.sign_up import ClientSignUp
 from handlers.user import User
 from managers.service import ServiceManager
 from managers.timetable import TimetableManager
@@ -23,7 +23,7 @@ class Client(User):
     _service_manager: ServiceManager
     _timetable_manager: TimetableManager
     _calendar: Calendar
-    _sign_up: SignUp
+    _sign_up: ClientSignUp
 
     def __init__(self, dispatcher: Dispatcher, service_manager: ServiceManager, timetable_manager: TimetableManager,
                  user_manager: UserManager, calendar_handler: Calendar):
@@ -31,7 +31,7 @@ class Client(User):
         self._service_manager = service_manager
         self._timetable_manager = timetable_manager
         self._calendar = calendar_handler
-        self._sign_up = SignUp(dispatcher, service_manager, timetable_manager, user_manager, calendar_handler)
+        self._sign_up = ClientSignUp(dispatcher, service_manager, timetable_manager, user_manager, calendar_handler)
 
     def init(self) -> None:
         self._dispatcher.register_message_handler(

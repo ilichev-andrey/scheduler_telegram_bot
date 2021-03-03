@@ -16,6 +16,9 @@ SELECT_ITEM = f'{SELECT} пункт'
 SELECT_DATE = f'{SELECT} дату'
 SELECT_TIME = f'{SELECT} время'
 
+SET_PHONE_NUMBER = 'Ведите номер телефона клиента'
+SET_FIO = 'Ведите ФИО'
+
 SELECTED = 'Вы выбрали'
 SELECTED_SERVICE = f'{SELECTED} услугу:'
 # SELECTED_DATE = f'{SELECTED} дату:'
@@ -42,8 +45,13 @@ _DETAILED_INFORMATION = 'Можно посмотреть подробную ин
 _CHANGE_INFORMATION = 'Можно изменить запись, нажав на кнопку ниже:'
 
 
-def get_successful_registration_text(service_name: str, dt: datetime) -> str:
-    return f'Вы записаны на услугу {service_name} в {converter.to_human_datetime(dt)}'
+def get_successful_registration_text(service_name: str, dt: datetime, client: str = None) -> str:
+    if client is None:
+        text = 'Вы записаны'
+    else:
+        text = f'Клиент: {client} записан'
+
+    return f'{text} на услугу: {service_name} в {converter.to_human_datetime(dt)}'
 
 
 def get_successful_add_service(service_name: str, execution_time_minutes: int) -> str:
