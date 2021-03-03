@@ -10,19 +10,21 @@ import exceptions
 from handlers import states, handler
 from handlers.user import User
 from handlers.worker.services import Services
+from managers.service import ServiceManager
 from managers.timetable import TimetableManager
 from view import static, keyboard
 from view.buttons import Buttons
 
 
 class Worker(User):
+    _service_manager: ServiceManager
     _timetable_manager: TimetableManager
     _services: Services
 
-    def __init__(self, dispatcher: Dispatcher, timetable_manager: TimetableManager):
+    def __init__(self, dispatcher: Dispatcher, service_manager: ServiceManager, timetable_manager: TimetableManager):
         super().__init__(dispatcher)
         self._timetable_manager = timetable_manager
-        self._services = Services(dispatcher)
+        self._services = Services(dispatcher, service_manager)
 
     def init(self) -> None:
         self._dispatcher.register_message_handler(
@@ -42,7 +44,7 @@ class Worker(User):
             state=states.BotStates.worker_page.timetable_page,
             content_types=types.ContentTypes.TEXT
         )
-        # self._services.init()
+        self._services.init()
 
     def get_main_buttons(self) -> Tuple[str, ...]:
         return Buttons.WORKER_TIMETABLE.value, Buttons.WORKER_ADD_TIMETABLE_ENTRY.value, Buttons.WORKER_SERVICES.value

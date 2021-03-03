@@ -16,9 +16,18 @@ class ClientStates(StatesGroup):
     sign_up = SignUpStates
 
 
+class ServiceStates(StatesGroup):
+    main_page = State()
+    show = State()
+    add = State()
+    delete = State()
+    input_name = State()
+
+
 class WorkerStates(StatesGroup):
     main_page = State()
     timetable_page = State()
+    service = ServiceStates
 
 
 class BotStates(StatesGroup):
