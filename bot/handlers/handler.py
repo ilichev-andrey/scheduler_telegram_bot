@@ -54,13 +54,13 @@ class Handler(AbstractHandler):
                               self._calendar)
 
     def init(self) -> None:
-        self.dispatcher.register_message_handler(self._start, commands=['start'], state='*')
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(self._start, commands=['start'], state='*')
+        self._dispatcher.register_message_handler(
             cancel,
             lambda message: message.text == Buttons.COMPLETE.value,
             state='*'
         )
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._show_main_page,
             lambda message: message.text == Buttons.BACK_TO_HOME.value,
             state='*'

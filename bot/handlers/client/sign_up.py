@@ -33,25 +33,25 @@ class SignUp(AbstractHandler):
         self._calendar = calendar_handler
 
     def init(self) -> None:
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._select_service,
             lambda message: message.text == Buttons.CLIENT_ADD_TIMETABLE_ENTRY.value,
             state=states.ClientStates.main_page
         )
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._select_date,
             state=states.SignUpStates.select_date
         )
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._select_time,
             state=states.SignUpStates.select_time
         )
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._set_phone_number,
             state=states.SignUpStates.set_phone_number,
             content_types=types.ContentTypes.CONTACT
         )
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._add_timetable_entry,
             state=states.SignUpStates.add_timetable_entry
         )
@@ -79,7 +79,7 @@ class SignUp(AbstractHandler):
             await handler.cancel(message, state)
             return
 
-        await state.update_data(data={'services': service_list})
+        await state.update_data(data={'_services': service_list})
         button_names = (service.name for service in service_list)
         await message.answer(
             static.SELECT_ITEM,
@@ -93,7 +93,7 @@ class SignUp(AbstractHandler):
 
         user_data = await state.get_data()
 
-        service = self._get_service_by_name(user_data['services'], message.text.lower())
+        service = self._get_service_by_name(user_data['_services'], message.text.lower())
         await state.update_data(data={'chosen_service': service})
         try:
             entries = await self._timetable_manager.get_free_slots(
@@ -213,5 +213,5 @@ class SignUp(AbstractHandler):
             if service.name == service_name:
                 return service
 
-        raise exceptions.IncorrectData(f'Не удалось найти услугу по имени. services={services}, '
+        raise exceptions.IncorrectData(f'Не удалось найти услугу по имени. _services={services}, '
                                        f'service_name={service_name}')

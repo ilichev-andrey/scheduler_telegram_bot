@@ -35,19 +35,19 @@ class Client(User):
         self._sign_up = SignUp(dispatcher, service_manager, timetable_manager, user_manager, calendar_handler)
 
     def init(self) -> None:
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._show_timetable,
             lambda message: message.text == Buttons.CLIENT_TIMETABLE.value,
             state=states.BotStates.client_page.main_page,
             content_types=types.ContentTypes.TEXT
         )
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._show_timetable_future,
             lambda message: message.text == Buttons.CLIENT_TIMETABLE_FUTURE.value,
             state=states.BotStates.client_page.timetable_page,
             content_types=types.ContentTypes.TEXT
         )
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._show_timetable_history,
             lambda message: message.text == Buttons.CLIENT_TIMETABLE_HISTORY.value,
             state=states.BotStates.client_page.timetable_page,

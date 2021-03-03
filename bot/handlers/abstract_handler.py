@@ -4,8 +4,10 @@ from aiogram import Dispatcher
 
 
 class AbstractHandler(ABC):
+    _dispatcher: Dispatcher
+
     def __init__(self, dispatcher: Dispatcher):
-        self.dispatcher = dispatcher
+        self._dispatcher = dispatcher
 
     @abstractmethod
     def init(self) -> None:

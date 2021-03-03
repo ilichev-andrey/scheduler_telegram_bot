@@ -20,20 +20,20 @@ class Services(AbstractHandler):
         super().__init__(dispatcher)
 
     def init(self) -> None:
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._show_actions,
             lambda message: message.text == Buttons.WORKER_SERVICES.value)
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._show,
             lambda message: message.text == Buttons.WORKER_SHOW_SERVICES.value)
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._input_name,
             lambda message: message.text == Buttons.WORKER_ADD_SERVICES.value)
-        self.dispatcher.register_message_handler(
+        self._dispatcher.register_message_handler(
             self._add,
             state=ServiceStates.input_name,
             content_types=types.ContentTypes.TEXT)
-        self.dispatcher.register_callback_query_handler(
+        self._dispatcher.register_callback_query_handler(
             self._delete,
             lambda c: c.data and c.data.startswith(self.BUTTON_PREFIX))
 
@@ -87,7 +87,7 @@ class Services(AbstractHandler):
 
     async def _delete(self, query: types.CallbackQuery):
         # service_id = query.data.removeprefix(self.BUTTON_PREFIX)
-        await self.dispatcher.bot.send_message(
+        await self._dispatcher.bot.send_message(
             query.message.chat.id,
             text='Нажата вторая кнопка',
             reply_markup=keyboard.create_reply_keyboard_markup((
