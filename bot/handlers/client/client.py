@@ -4,7 +4,7 @@ from typing import Tuple, List
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from scheduler_core import containers
+from scheduler_core import containers, enums
 from wrappers import LoggerWrap
 
 import exceptions
@@ -68,8 +68,9 @@ class Client(User):
             return
 
         entries = self._get_future_entries(entries)
+        time_type = enums.TimeType.FUTURE
         if not entries:
-            await message.answer('У вас пока нет будущих записей')
+            await message.answer(static.get_client_timetable_title(time_type, is_found=False))
             return
 
         entries.sort(key=lambda entry: entry.start_dt)
@@ -79,10 +80,7 @@ class Client(User):
         for button_name in button_names_gen:
             markup.add(InlineKeyboardButton(button_name, callback_data='button'))
 
-        await message.answer(
-            'Ваши ближайшие записи:\nМожно изменить запись, нажав на кнопку ниже:',
-            reply_markup=markup
-        )
+        await message.answer(static.get_client_timetable_title(time_type), reply_markup=markup)
 
     async def _show_timetable_history(self, message: types.Message, state: FSMContext):
         user = await handler.get_user(state)
@@ -95,8 +93,9 @@ class Client(User):
             return
 
         entries = self._get_past_entries(entries)
+        time_type = enums.TimeType.PAST
         if not entries:
-            await message.answer('У вас ранее не было записей')
+            await message.answer(static.get_client_timetable_title(time_type, is_found=False))
             return
 
         entries.sort(key=lambda entry: entry.start_dt)
@@ -106,10 +105,7 @@ class Client(User):
         for button_name in button_names_gen:
             markup.add(InlineKeyboardButton(button_name, callback_data='button'))
 
-        await message.answer(
-            'Ваши прошедшие записи:\nМожно посмотреть подробную информацию, нажав на кнопку ниже:',
-            reply_markup=markup
-        )
+        await message.answer(static.get_client_timetable_title(time_type), reply_markup=markup)
 
     @staticmethod
     async def _show_timetable(message: types.Message):

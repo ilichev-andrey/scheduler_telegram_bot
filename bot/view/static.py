@@ -37,6 +37,7 @@ SEND_LOCATION = 'Отправить геолокацию'
 
 
 _DETAILED_INFORMATION = 'Можно посмотреть подробную информацию, нажав на кнопку ниже:'
+_CHANGE_INFORMATION = 'Можно изменить запись, нажав на кнопку ниже:'
 
 
 def get_successful_registration_text(service_name: str, dt: datetime) -> str:
@@ -66,3 +67,16 @@ def get_worker_timetable_title(time_type: enums.TimeType, time_limit: enums.Time
         return f'Записи на {title}\n{_DETAILED_INFORMATION}'
     else:
         return f'Нет записей на {title}'
+
+
+def get_client_timetable_title(time_type: enums.TimeType, is_found: bool = True) -> str:
+    if time_type == enums.TimeType.PAST:
+        if is_found:
+            return f'Ваши прошедшие записи:\n{_DETAILED_INFORMATION}'
+        else:
+            return 'У вас ранее не было записей'
+    else:
+        if is_found:
+            return f'Ваши ближайшие записи:\n{_CHANGE_INFORMATION}'
+        else:
+            return 'У вас пока нет будущих записей'
