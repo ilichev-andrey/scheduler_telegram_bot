@@ -60,9 +60,19 @@ class Handler(AbstractHandler):
             lambda message: message.text == Buttons.COMPLETE.value,
             state='*'
         )
+        self._dispatcher.register_callback_query_handler(
+            self._cancel_from_inline_keyboard,
+            lambda callback_query: callback_query.data and callback_query.data == Buttons.COMPLETE.value,
+            state='*'
+        )
         self._dispatcher.register_message_handler(
             self._show_main_page,
             lambda message: message.text == Buttons.BACK_TO_HOME.value,
+            state='*'
+        )
+        self._dispatcher.register_callback_query_handler(
+            self._show_main_page_from_inline_keyboard,
+            lambda callback_query: callback_query.data and callback_query.data == Buttons.BACK_TO_HOME.value,
             state='*'
         )
 
@@ -102,3 +112,9 @@ class Handler(AbstractHandler):
             static.SELECT_ITEM,
             reply_markup=keyboard.create_reply_keyboard_markup(buttons, with_home=False)
         )
+
+    async def _cancel_from_inline_keyboard(self, query: types.CallbackQuery):
+        await cancel(query.message, self._dispatcher.current_state())
+
+    async def _show_main_page_from_inline_keyboard(self, query: types.CallbackQuery):
+        await self._show_main_page(query.message, self._dispatcher.current_state())

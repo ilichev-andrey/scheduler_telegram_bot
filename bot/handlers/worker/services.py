@@ -1,5 +1,6 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
+from scheduler_core import containers
 from wrappers import LoggerWrap
 
 import exceptions
@@ -33,13 +34,16 @@ class Services(AbstractHandler):
         self._dispatcher.register_message_handler(
             self._input_name,
             lambda message: message.text == Buttons.WORKER_ADD_SERVICES.value,
-            state=states.ServiceStates.input_name
+            state=states.ServiceStates.main_page
+        )
+        self._dispatcher.register_message_handler(
+            self._input_execution_time,
+            state=states.ServiceStates.input_execution_time
         )
         self._dispatcher.register_message_handler(
             self._add,
             state=states.ServiceStates.add
         )
-
         self._dispatcher.register_callback_query_handler(
             self._delete,
             lambda callback_query: callback_query.data and callback_query.data.startswith(self.BUTTON_PREFIX),
@@ -80,29 +84,40 @@ class Services(AbstractHandler):
                     callback_data=f'{self.BUTTON_PREFIX}{service.id}'))
 
         await states.ServiceStates.show.set()
-        await message.answer(static.SERVICES, reply_markup=reply_markup)
+        await message.answer(
+            static.SERVICES,
+            reply_markup=keyboard.add_service_buttons_for_inline_keyboard(reply_markup)
+        )
 
     @staticmethod
     async def _input_name(message: types.Message):
-        # await message.answer(static.INPUT_NAME)
-        # await ServiceStates.input_name.set()
-        pass
+        await message.answer(static.INPUT_NAME)
+        await states.ServiceStates.input_execution_time.set()
+
+    @staticmethod
+    async def _input_execution_time(message: types.Message, state: FSMContext):
+        await state.update_data(data={'service_name': message.text})
+        await message.answer(static.INPUT_EXECUTION_TIME)
+        await states.ServiceStates.add.set()
 
     async def _add(self, message: types.Message, state: FSMContext):
-        # if ServiceInputValidator.is_valid_name(message.text):
-        #     await message.reply(static.WRONG_INPUT)
-        #     return
-        #
-        # service_name = message.text.title()
-        # try:
-        #     self.service_provider.add(service_name)
-        # except exceptions.ServiceAlreadyExists:
-        #     await message.reply(static.SERVICE_EXISTS)
-        #     return
-        #
-        # await state.finish()
-        # await message.answer(f'{static.SERVICE_ADDED} {service_name}')
-        pass
+        if not message.text.isdigit():
+            await message.reply(static.WRONG_INPUT)
+            return
+
+        user_data = await state.get_data()
+        service = containers.Service(user_data['service_name'], message.text)
+        try:
+            await self._service_manager.add([service])
+        except exceptions.ApiCommandExecutionError as e:
+            LoggerWrap().get_logger().exception(e)
+            await message.answer(static.INTERNAL_ERROR)
+            await handler.cancel(message, state)
+            return
+
+        await message.answer(static.get_successful_add_service(service.name, service.execution_time_minutes))
+        await states.ServiceStates.main_page.set()
+        await self._show_actions(message)
 
     async def _delete(self, query: types.CallbackQuery):
         message = query.message
@@ -110,7 +125,7 @@ class Services(AbstractHandler):
 
         service_id = query.data.removeprefix(self.BUTTON_PREFIX)
         try:
-            await self._service_manager.delete(service=frozenset((int(service_id),)))
+            await self._service_manager.delete(services=frozenset((int(service_id),)))
         except exceptions.ApiCommandExecutionError as e:
             LoggerWrap().get_logger().exception(e)
             await message.answer(static.INTERNAL_ERROR)

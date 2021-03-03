@@ -23,10 +23,10 @@ SELECTED_TIME = f'{SELECTED} время:'
 
 INPUT = 'Ведите'
 INPUT_NAME = f'{INPUT} название'
+INPUT_EXECUTION_TIME = f'{INPUT} продолжительность выполнения услуги (кол-во минут)'
 
-WRONG_INPUT = 'Неккоректные вводимые данные.'
+WRONG_INPUT = 'Введенные данные неккоректные.'
 
-SERVICE_ADDED = 'Добавлена услуга:'
 SERVICE_EXISTS = 'Услуга уже существует'
 NO_SERVICES = 'Услуги не добавлены'
 SERVICES = 'Услуги:'
@@ -44,6 +44,10 @@ _CHANGE_INFORMATION = 'Можно изменить запись, нажав на
 
 def get_successful_registration_text(service_name: str, dt: datetime) -> str:
     return f'Вы записаны на услугу {service_name} в {converter.to_human_datetime(dt)}'
+
+
+def get_successful_add_service(service_name: str, execution_time_minutes: int) -> str:
+    return f'Добавлена услуга: {service_name} продолжительностью {execution_time_minutes} минут'
 
 
 def get_selected_date_text(selected_date: date) -> str:

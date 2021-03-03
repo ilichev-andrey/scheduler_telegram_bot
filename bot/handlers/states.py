@@ -22,6 +22,7 @@ class ServiceStates(StatesGroup):
     add = State()
     delete = State()
     input_name = State()
+    input_execution_time = State()
 
 
 class WorkerStates(StatesGroup):
