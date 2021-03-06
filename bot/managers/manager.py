@@ -3,7 +3,7 @@ from scheduler_core.command_responses.command_response import CommandResponse
 from scheduler_core.commands.command import Command
 from wrappers import LoggerWrap
 
-import exceptions
+from bot import exceptions
 
 
 class Manager:

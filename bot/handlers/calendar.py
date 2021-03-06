@@ -7,7 +7,7 @@ from telegram_bot_calendar import WMonthTelegramCalendar, LSTEP
 from telegram_bot_calendar.static import Locales
 
 from bot.view import static
-from handlers.abstract_handler import AbstractHandler
+from bot.handlers.abstract_handler import AbstractHandler
 
 
 class Calendar(AbstractHandler):

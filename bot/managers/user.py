@@ -11,8 +11,8 @@ from scheduler_core.commands.get_user import GetUserCommand
 from scheduler_core.commands.get_workers import GetWorkersCommand
 from scheduler_core.commands.update_user import UpdateUserCommand
 
-import exceptions
-from managers.manager import Manager
+from bot import exceptions
+from bot.managers.manager import Manager
 
 
 class UserManager(Manager):

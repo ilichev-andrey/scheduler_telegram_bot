@@ -11,8 +11,8 @@ from scheduler_core.commands.get_free_timetable_slots import GetFreeTimetableSlo
 from scheduler_core.commands.get_worker_timetable import GetWorkerTimetableCommand
 from scheduler_core.commands.take_timetable_slots import TakeTimetableSlotsCommand
 
-import exceptions
-from managers.manager import Manager
+from bot import exceptions
+from bot.managers.manager import Manager
 
 
 class TimetableManager(Manager):

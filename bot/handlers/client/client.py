@@ -7,16 +7,16 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from scheduler_core import containers, enums
 from wrappers import LoggerWrap
 
-import exceptions
-from handlers import states, handler
-from handlers.calendar import Calendar
-from handlers.client.sign_up import ClientSignUp
-from handlers.user import User
-from managers.service import ServiceManager
-from managers.timetable import TimetableManager
-from managers.user import UserManager
-from view import keyboard, static
-from view.buttons import Buttons
+from bot import exceptions
+from bot.handlers import states, handler
+from bot.handlers.calendar import Calendar
+from bot.handlers.client.sign_up import ClientSignUp
+from bot.handlers.user import User
+from bot.managers.service import ServiceManager
+from bot.managers.timetable import TimetableManager
+from bot.managers.user import UserManager
+from bot.view import keyboard, static
+from bot.view.buttons import Buttons
 
 
 class Client(User):

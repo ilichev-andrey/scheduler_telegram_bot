@@ -3,7 +3,7 @@ from datetime import date, datetime
 from aiogram.utils.markdown import link
 from scheduler_core import enums
 
-import converter
+from bot import converter
 
 instagram_link = link('dinail58', 'https://instagram.com/dinail58?igshid=6aw9ki1im567')
 

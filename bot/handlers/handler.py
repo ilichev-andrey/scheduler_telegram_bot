@@ -3,17 +3,17 @@ from aiogram.dispatcher import FSMContext
 from scheduler_core import enums, containers, configs
 from wrappers import LoggerWrap
 
-import exceptions
-from handlers import states
-from handlers.abstract_handler import AbstractHandler
-from handlers.calendar import Calendar
-from handlers.client.client import Client
-from handlers.worker.worker import Worker
-from managers.service import ServiceManager
-from managers.timetable import TimetableManager
-from managers.user import UserManager
-from view import static, keyboard
-from view.buttons import Buttons
+from bot import exceptions
+from bot.handlers import states
+from bot.handlers.abstract_handler import AbstractHandler
+from bot.handlers.calendar import Calendar
+from bot.handlers.client.client import Client
+from bot.handlers.worker.worker import Worker
+from bot.managers.service import ServiceManager
+from bot.managers.timetable import TimetableManager
+from bot.managers.user import UserManager
+from bot.view import static, keyboard
+from bot.view.buttons import Buttons
 
 
 async def cancel(message: types.Message, state: FSMContext) -> None:

@@ -6,17 +6,17 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from scheduler_core import enums, containers
 from wrappers import LoggerWrap
 
-import exceptions
-from handlers import states, handler
-from handlers.calendar import Calendar
-from handlers.user import User
-from handlers.worker.services import Services
-from handlers.worker.sign_up import WorkerSignUp
-from managers.service import ServiceManager
-from managers.timetable import TimetableManager
-from managers.user import UserManager
-from view import static, keyboard
-from view.buttons import Buttons
+from bot import exceptions
+from bot.handlers import states, handler
+from bot.handlers.calendar import Calendar
+from bot.handlers.user import User
+from bot.handlers.worker.services import Services
+from bot.handlers.worker.sign_up import WorkerSignUp
+from bot.managers.service import ServiceManager
+from bot.managers.timetable import TimetableManager
+from bot.managers.user import UserManager
+from bot.view import static, keyboard
+from bot.view.buttons import Buttons
 
 
 def _filter_busy_slots(entries: List[containers.TimetableEntry]) -> List[containers.TimetableEntry]:

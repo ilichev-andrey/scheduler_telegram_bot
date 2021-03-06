@@ -7,8 +7,8 @@ from scheduler_core.commands.add_services import AddServicesCommand
 from scheduler_core.commands.delete_services import DeleteServicesCommand
 from scheduler_core.commands.get_services import GetServicesCommand
 
-import exceptions
-from managers.manager import Manager
+from bot import exceptions
+from bot.managers.manager import Manager
 
 
 class ServiceManager(Manager):

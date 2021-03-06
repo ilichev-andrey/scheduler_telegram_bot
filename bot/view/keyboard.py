@@ -2,8 +2,8 @@ from typing import Iterable
 
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 
-from view import static
-from view.buttons import Buttons
+from bot.view import static
+from bot.view.buttons import Buttons
 
 
 def add_service_buttons_for_reply_keyboard(keyboard: ReplyKeyboardMarkup, with_complete: bool = True,

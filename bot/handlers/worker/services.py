@@ -3,12 +3,12 @@ from aiogram.dispatcher import FSMContext
 from scheduler_core import containers
 from wrappers import LoggerWrap
 
-import exceptions
-from handlers import states, handler
-from handlers.abstract_handler import AbstractHandler
-from managers.service import ServiceManager
-from view import keyboard, static
-from view.buttons import Buttons
+from bot import exceptions
+from bot.handlers import states, handler
+from bot.handlers.abstract_handler import AbstractHandler
+from bot.managers.service import ServiceManager
+from bot.view import keyboard, static
+from bot.view.buttons import Buttons
 
 
 class Services(AbstractHandler):

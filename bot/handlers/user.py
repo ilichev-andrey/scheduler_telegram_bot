@@ -3,8 +3,8 @@ from typing import Tuple
 
 from scheduler_core import containers
 
-import converter
-from handlers.abstract_handler import AbstractHandler
+from bot import converter
+from bot.handlers.abstract_handler import AbstractHandler
 
 
 class User(AbstractHandler):
