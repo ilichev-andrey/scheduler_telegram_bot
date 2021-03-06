@@ -5,8 +5,8 @@ import sys
 
 from wrappers import logger
 
-import configs
-from application import Application
+from bot import configs
+from bot.application import Application
 
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
 
