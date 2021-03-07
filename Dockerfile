@@ -12,6 +12,7 @@ RUN apt-get update && \
     apt-get install -y git && \
     pip install -U pip && \
     python -m pip install git+https://github.com/ilichev-andrey/scheduler_core.git && \
+    python -m pip install git+https://github.com/ilichev-andrey/python-telegram-bot-calendar.git && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY . .
