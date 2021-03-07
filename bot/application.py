@@ -1,9 +1,9 @@
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram import Bot, Dispatcher, executor
 
-import configs
-from handlers import handler
-from middlewares import AccessMiddleware
+from bot import configs
+from bot.handlers import handler
+from bot.middlewares import AccessMiddleware
 
 
 class Application(object):
