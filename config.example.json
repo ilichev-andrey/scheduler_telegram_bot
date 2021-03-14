@@ -3,5 +3,6 @@
   "api_connection": {
     "host": "127.0.0.1",
     "port": 45678
-  }
+  },
+  "telegram_api_token": ""
 }

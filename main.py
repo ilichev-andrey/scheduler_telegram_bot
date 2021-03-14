@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import sys
@@ -12,25 +11,22 @@ CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.j
 
 
 def main():
-    if not os.path.isfile(CONFIG_FILE):
-        sys.stderr.write(f'File "{CONFIG_FILE}" - missing')
-        exit(1)
-
-    with open(CONFIG_FILE) as fin:
-        config = json.load(fin)
-
     try:
-        config = configs.load_config(config)
+        config = configs.load(CONFIG_FILE)
     except KeyError as e:
-        sys.stderr.write(f'Parameter {str(e)} is missing in the file, see "default_config.json"')
-        exit(1)
+        sys.stderr.write(f'Parameter {str(e)} is missing, see "README.md"')
+        return False
+    except ValueError as e:
+        sys.stderr.write(f'{str(e)}. Invalid parameter, see "README.md"')
+        return False
 
     logger.create(config.log_file, logging.INFO)
 
-    app = Application(config, os.getenv('TELEGRAM_API_TOKEN'))
+    app = Application(config)
     app.init()
     app.run()
+    return True
 
 
 if __name__ == '__main__':
-    main()
+    exit(not main())

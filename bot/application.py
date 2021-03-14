@@ -11,9 +11,9 @@ class Application(object):
     _dispatcher: Dispatcher
     _handler: handler.Handler
 
-    def __init__(self, config: configs.Config, api_token: str):
+    def __init__(self, config: configs.Config):
         self._config = config
-        self._dispatcher = Dispatcher(Bot(token=api_token), storage=MemoryStorage())
+        self._dispatcher = Dispatcher(Bot(token=config.telegram_api_token), storage=MemoryStorage())
         self._dispatcher.middleware.setup(AccessMiddleware())
         self._handler = handler.Handler(self._dispatcher, config.api_connection)
 
