@@ -10,14 +10,18 @@ from bot.application import Application
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
 
 
+def error(message: str):
+    sys.stderr.write(f'{message}\n')
+
+
 def main():
     try:
         config = configs.load(CONFIG_FILE)
     except KeyError as e:
-        sys.stderr.write(f'Parameter {str(e)} is missing, see "README.md"')
+        error(f'Parameter {str(e)} is missing, see "README.md"')
         return False
     except ValueError as e:
-        sys.stderr.write(f'{str(e)}. Invalid parameter, see "README.md"')
+        error(f'{str(e)}. Invalid parameter, see "README.md"')
         return False
 
     logger.create(config.log_file, logging.INFO)
