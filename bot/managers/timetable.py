@@ -1,11 +1,13 @@
-from datetime import date
+from datetime import date, time, datetime
 from typing import FrozenSet, List
 
 from scheduler_core import containers, enums
+from scheduler_core.command_responses.add_timetable_slots import AddTimetableSlotsResponse
 from scheduler_core.command_responses.get_client_timetable import GetClientTimetableResponse
 from scheduler_core.command_responses.get_free_timetable_slots import GetFreeTimetableSlotsResponse
 from scheduler_core.command_responses.get_worker_timetable import GetWorkerTimetableResponse
 from scheduler_core.command_responses.take_timetable_slots import TakeTimetableSlotsResponse
+from scheduler_core.commands.add_timetable_slots import AddTimetableSlotsCommand
 from scheduler_core.commands.get_client_timetable import GetClientTimetableCommand
 from scheduler_core.commands.get_free_timetable_slots import GetFreeTimetableSlotsCommand
 from scheduler_core.commands.get_worker_timetable import GetWorkerTimetableCommand
@@ -16,6 +18,21 @@ from bot.managers.manager import Manager
 
 
 class TimetableManager(Manager):
+    async def add_slots(self, date_ranges: containers.DateRanges, times: List[time], worker_id: int) -> List[datetime]:
+        """
+        :raises:
+            ApiCommandExecutionError если не удалось добавить слоты в расписание
+        """
+
+        command = AddTimetableSlotsCommand(date_ranges=date_ranges, times=times, worker=worker_id)
+        response = await self._send_command(command)
+
+        if response.status == enums.CommandStatus.SUCCESSFUL_EXECUTION:
+            if isinstance(response, AddTimetableSlotsResponse):
+                return response.dates
+
+        raise exceptions.ApiCommandExecutionError(f'Не удалось добавить слоты в расписание, response={response}')
+
     async def get_free_slots(self, date_ranges: containers.DateRanges, services: FrozenSet[int],
                              worker_id: int) -> List[containers.TimetableEntry]:
         """

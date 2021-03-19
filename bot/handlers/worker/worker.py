@@ -10,6 +10,7 @@ from bot import exceptions
 from bot.handlers import states, handler
 from bot.handlers.calendar import Calendar
 from bot.handlers.user import User
+from bot.handlers.worker.add_timetable_slots import AddTimetableSlots
 from bot.handlers.worker.services import Services
 from bot.handlers.worker.sign_up import WorkerSignUp
 from bot.managers.service import ServiceManager
@@ -28,6 +29,7 @@ class Worker(User):
     _timetable_manager: TimetableManager
     _services: Services
     _sign_up: WorkerSignUp
+    _add_timetable_slots: AddTimetableSlots
 
     def __init__(self, dispatcher: Dispatcher, service_manager: ServiceManager, timetable_manager: TimetableManager,
                  user_manager: UserManager, calendar_handler: Calendar):
@@ -35,6 +37,7 @@ class Worker(User):
         self._timetable_manager = timetable_manager
         self._services = Services(dispatcher, service_manager)
         self._sign_up = WorkerSignUp(dispatcher, service_manager, timetable_manager, user_manager, calendar_handler)
+        self._add_timetable_slots = AddTimetableSlots(dispatcher, timetable_manager, calendar_handler)
 
     def init(self) -> None:
         self._dispatcher.register_message_handler(
@@ -56,9 +59,11 @@ class Worker(User):
         )
         self._services.init()
         self._sign_up.init()
+        self._add_timetable_slots.init()
 
     def get_main_buttons(self) -> Tuple[str, ...]:
-        return Buttons.WORKER_TIMETABLE.value, Buttons.WORKER_ADD_TIMETABLE_ENTRY.value, Buttons.WORKER_SERVICES.value
+        return (Buttons.WORKER_TIMETABLE.value, Buttons.WORKER_ADD_TIMETABLE_SLOTS.value,
+                Buttons.WORKER_ADD_TIMETABLE_ENTRY.value, Buttons.WORKER_SERVICES.value)
 
     @staticmethod
     async def _show_timetable(message: types.Message):

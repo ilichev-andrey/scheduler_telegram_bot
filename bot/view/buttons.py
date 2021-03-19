@@ -3,7 +3,9 @@ from enum import Enum
 
 class Buttons(Enum):
     WORKER_TIMETABLE = 'Показать расписание'
+    WORKER_ADD_TIMETABLE_SLOTS = 'Добавить расписание'
     WORKER_ADD_TIMETABLE_ENTRY = 'Записать'
+    WORKER_TIMETABLE_PERIOD = 'На период'
     WORKER_TIMETABLE_TODAY = 'На сегодня'
     WORKER_TIMETABLE_WEEK = 'На неделю'
     WORKER_SERVICES = 'Услуги'
@@ -22,7 +24,7 @@ class Buttons(Enum):
     RESUME = 'Продолжить'
     CANCEL = 'Отмена'
     COMPLETE = 'Завершить'
-    BACK_TO_HOME = 'Вернуться в глувное меню'
+    BACK_TO_HOME = 'Вернуться в главное меню'
 
 
 # Текст кнопок должен быть уникальный, т.к. на них подвешиваются разные события

@@ -26,9 +26,11 @@ class Calendar(AbstractHandler):
     def init(self) -> None:
         self._dispatcher.register_callback_query_handler(self._handle_callback_query, self._calendar.func(), state='*')
 
-    async def open(self, message: types.Message, on_selected_date: callable = None, include_dates: Set[date] = None):
+    async def open(self, message: types.Message, on_selected_date: callable = None, include_dates: Set[date] = None,
+                   exclude_dates: Set[date] = None):
         self._on_selected_date = on_selected_date
         self._calendar.include_dates = include_dates
+        self._calendar.exclude_dates = exclude_dates
 
         calendar, step = self._calendar.build()
         await self._dispatcher.bot.send_message(
@@ -37,7 +39,7 @@ class Calendar(AbstractHandler):
             reply_markup=calendar
         )
 
-    async def _handle_callback_query(self, query):
+    async def _handle_callback_query(self, query: types.CallbackQuery):
         result, key, step = self._calendar.process(query.data)
 
         if not result and key:

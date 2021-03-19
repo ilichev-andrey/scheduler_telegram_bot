@@ -12,7 +12,7 @@ from bot.view.buttons import Buttons
 
 
 class Services(AbstractHandler):
-    BUTTON_PREFIX = 'svc_btn_'
+    _BUTTON_PREFIX = 'svc_btn_'
 
     _service_manager: ServiceManager
 
@@ -46,7 +46,7 @@ class Services(AbstractHandler):
         )
         self._dispatcher.register_callback_query_handler(
             self._delete,
-            lambda callback_query: callback_query.data and callback_query.data.startswith(self.BUTTON_PREFIX),
+            lambda callback_query: callback_query.data and callback_query.data.startswith(self._BUTTON_PREFIX),
             state=states.ServiceStates.show
         )
 
@@ -81,7 +81,7 @@ class Services(AbstractHandler):
                 types.InlineKeyboardButton(text=service.name, callback_data=service.name),
                 types.InlineKeyboardButton(
                     text=f'☜ {Buttons.WORKER_DELETE_SERVICES.value}',
-                    callback_data=f'{self.BUTTON_PREFIX}{service.id}'))
+                    callback_data=f'{self._BUTTON_PREFIX}{service.id}'))
 
         await states.ServiceStates.show.set()
         await message.answer(
@@ -123,7 +123,7 @@ class Services(AbstractHandler):
         message = query.message
         state = self._dispatcher.current_state()
 
-        service_id = query.data.removeprefix(self.BUTTON_PREFIX)
+        service_id = query.data.removeprefix(self._BUTTON_PREFIX)
         try:
             await self._service_manager.delete(services=frozenset((int(service_id),)))
         except exceptions.ApiCommandExecutionError as e:

@@ -33,11 +33,20 @@ class WorkerSignUpStates(StatesGroup):
     add_timetable_entry = State()
 
 
+class WorkerAddTimetableSlotsStates(StatesGroup):
+    select_type = State()
+    select_start_date = State()
+    select_end_date = State()
+    select_times = State()
+    add_slots = State()
+
+
 class WorkerStates(StatesGroup):
     main_page = State()
     timetable_page = State()
     service = ServiceStates
     sign_up = WorkerSignUpStates
+    add_timetable_slots = WorkerAddTimetableSlotsStates
 
 
 class BotStates(StatesGroup):

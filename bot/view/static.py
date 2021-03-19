@@ -16,6 +16,9 @@ SELECT_ITEM = f'{SELECT} пункт'
 SELECT_DATE = f'{SELECT} дату'
 SELECT_TIME = f'{SELECT} время'
 
+SELECT_START_PERIOD = f'{SELECT} начальную дату'
+SELECT_END_PERIOD = f'{SELECT} конечную дату'
+
 SET_PHONE_NUMBER = 'Ведите номер телефона клиента'
 SET_FIO = 'Ведите ФИО'
 
@@ -28,7 +31,7 @@ INPUT = 'Ведите'
 INPUT_NAME = f'{INPUT} название'
 INPUT_EXECUTION_TIME = f'{INPUT} продолжительность выполнения услуги (кол-во минут)'
 
-WRONG_INPUT = 'Введенные данные неккоректные.'
+WRONG_INPUT = 'Введенные данные некорректные.'
 
 SERVICE_EXISTS = 'Услуга уже существует'
 NO_SERVICES = 'Услуги не добавлены'
