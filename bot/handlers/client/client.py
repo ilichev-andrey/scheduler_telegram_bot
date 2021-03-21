@@ -84,9 +84,7 @@ class Client(User):
         try:
             entries = await self._timetable_manager.get_client_timetable(user.id)
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         entries = self._get_future_entries(entries)
@@ -130,9 +128,7 @@ class Client(User):
         try:
             entries = await self._timetable_manager.release_slots(frozenset((entry_id,)))
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         if entries:
@@ -145,9 +141,7 @@ class Client(User):
         try:
             entries = await self._timetable_manager.get_client_timetable(user.id)
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         entries = self._get_past_entries(entries)

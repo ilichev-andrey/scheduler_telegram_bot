@@ -90,9 +90,7 @@ class AddTimetableSlots(AbstractHandler):
                 time_limit=enums.TimeLimit.NO_LIMIT
             )
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         exclude_dates = {entry.start_dt.date() for entry in entries}
@@ -186,9 +184,7 @@ class AddTimetableSlots(AbstractHandler):
                 worker_id=(await handler.get_user(state)).id
             )
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         await message.delete()

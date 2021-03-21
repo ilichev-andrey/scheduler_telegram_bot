@@ -16,13 +16,20 @@ from bot.view import static, keyboard
 from bot.view.buttons import Buttons
 
 
-async def cancel(message: types.Message, state: FSMContext) -> None:
+async def reset(message: types.Message, message_text: str, state: FSMContext = None) -> None:
+    if state is not None:
+        await state.finish()
+    await message.answer(message_text, reply_markup=types.ReplyKeyboardRemove(), parse_mode='Markdown')
+
+
+async def cancel(message: types.Message, state: FSMContext = None) -> None:
     await reset(message, static.START, state)
 
 
-async def reset(message: types.Message, message_text: str, state: FSMContext) -> None:
-    await state.finish()
-    await message.answer(message_text, reply_markup=types.ReplyKeyboardRemove(), parse_mode='Markdown')
+async def error(text: str, message: types.Message, state: FSMContext = None) -> None:
+    LoggerWrap().get_logger().error(text)
+    await message.answer(static.INTERNAL_ERROR)
+    await cancel(message, state)
 
 
 async def set_user(user: containers.User, state: FSMContext) -> None:
@@ -89,9 +96,7 @@ class Handler(AbstractHandler):
         try:
             user = await self._user_manager.get_user(message.from_user)
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await cancel(message, state)
+            await error(str(e), message, state)
             return
 
         LoggerWrap().get_logger().info(user)

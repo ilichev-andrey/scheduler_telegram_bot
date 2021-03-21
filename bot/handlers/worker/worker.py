@@ -86,9 +86,7 @@ class Worker(User):
         try:
             entries = await self._timetable_manager.get_worker_timetable(user.id, time_type, time_limit)
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
         except exceptions.EmptyTimetable:
             entries = []

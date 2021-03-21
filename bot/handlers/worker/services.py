@@ -65,9 +65,7 @@ class Services(AbstractHandler):
         try:
             service_list = await self._service_manager.get()
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(e)
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         if not service_list:
@@ -110,9 +108,7 @@ class Services(AbstractHandler):
         try:
             await self._service_manager.add([service])
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(e)
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         await message.answer(static.get_successful_add_service(service.name, service.execution_time_minutes))
@@ -127,9 +123,7 @@ class Services(AbstractHandler):
         try:
             await self._service_manager.delete(services=frozenset((int(service_id),)))
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(e)
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         await message.delete()

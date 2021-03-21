@@ -62,9 +62,7 @@ class WorkerSignUp(AbstractHandler):
         try:
             service_list = await self._service_manager.get()
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(e)
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         await state.update_data(data={'services': service_list})
@@ -88,9 +86,7 @@ class WorkerSignUp(AbstractHandler):
                 worker_id=(await handler.get_user(state)).id
             )
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         if not entries:
@@ -153,9 +149,7 @@ class WorkerSignUp(AbstractHandler):
                 tm=converter.from_human_time(user_data['chosen_time'])
             )
         except exceptions.IncorrectData as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         service: containers.Service = user_data['chosen_service']
@@ -167,9 +161,7 @@ class WorkerSignUp(AbstractHandler):
                 client_id=user.id
             )
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         await message.answer(static.get_successful_registration_text(service.name, entry.start_dt, message.text))

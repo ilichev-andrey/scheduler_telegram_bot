@@ -63,9 +63,7 @@ class ClientSignUp(AbstractHandler):
         try:
             workers = await self._user_manager.get_workers()
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(e)
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
         else:
             await state.update_data(data={'worker': workers[0]})
 
@@ -73,9 +71,7 @@ class ClientSignUp(AbstractHandler):
         try:
             service_list = await self._service_manager.get()
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(e)
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         await state.update_data(data={'_services': service_list})
@@ -101,9 +97,7 @@ class ClientSignUp(AbstractHandler):
                 worker_id=user_data.get('worker', containers.User).id
             )
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         if not entries:
@@ -140,9 +134,7 @@ class ClientSignUp(AbstractHandler):
         try:
             await self._user_manager.update(user_id=user.id, phone_number=message.contact.phone_number)
         except exceptions.IncorrectData as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         await states.ClientSignUpStates.select_time.set()
@@ -175,9 +167,7 @@ class ClientSignUp(AbstractHandler):
                 tm=converter.from_human_time(chosen_time)
             )
         except exceptions.IncorrectData as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         service: containers.Service = user_data['chosen_service']
@@ -189,9 +179,7 @@ class ClientSignUp(AbstractHandler):
                 client_id=user.id
             )
         except exceptions.ApiCommandExecutionError as e:
-            LoggerWrap().get_logger().exception(str(e))
-            await message.answer(static.INTERNAL_ERROR)
-            await handler.cancel(message, state)
+            await handler.error(str(e), message, state)
             return
 
         await message.answer(static.get_successful_registration_text(service.name, entry.start_dt))
