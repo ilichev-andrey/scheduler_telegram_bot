@@ -28,7 +28,7 @@ async def cancel(message: types.Message, state: FSMContext = None) -> None:
 
 async def error(text: str, message: types.Message, state: FSMContext = None) -> None:
     LoggerWrap().get_logger().error(text)
-    await message.answer(static.INTERNAL_ERROR)
+    await message.answer(static.INTERNAL_ERROR, parse_mode='Markdown')
     await cancel(message, state)
 
 

@@ -6,10 +6,12 @@ from scheduler_core import enums, containers
 from bot import converter
 
 instagram_link = link('dinail58', 'https://instagram.com/dinail58?igshid=6aw9ki1im567')
+support_link = link('support', 'https://t.me/@ilichev_andrey')
 
-BOT_DESCRIPTION = f'Приветствую! Я бот, созданный для {instagram_link}'
+CONTACT_SUPPORT = f'Свяжитесь с нами в {support_link}'
+BOT_DESCRIPTION = f'Приветствую! Я бот, созданный для {instagram_link}.\n{CONTACT_SUPPORT} при возникновении проблем'
 
-INTERNAL_ERROR = 'Ой, что-то пошло не так. Повторите попытку позже.'
+INTERNAL_ERROR = f'Ой, что-то пошло не так.\nПовторите попытку позже или {CONTACT_SUPPORT.lower()}.'
 EMPTY_TEXT = '⁣'
 
 SELECT = 'Выберите'
