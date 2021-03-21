@@ -6,11 +6,13 @@ from scheduler_core.command_responses.add_timetable_slots import AddTimetableSlo
 from scheduler_core.command_responses.get_client_timetable import GetClientTimetableResponse
 from scheduler_core.command_responses.get_free_timetable_slots import GetFreeTimetableSlotsResponse
 from scheduler_core.command_responses.get_worker_timetable import GetWorkerTimetableResponse
+from scheduler_core.command_responses.release_timetable_slot import ReleaseTimetableSlotsResponse
 from scheduler_core.command_responses.take_timetable_slots import TakeTimetableSlotsResponse
 from scheduler_core.commands.add_timetable_slots import AddTimetableSlotsCommand
 from scheduler_core.commands.get_client_timetable import GetClientTimetableCommand
 from scheduler_core.commands.get_free_timetable_slots import GetFreeTimetableSlotsCommand
 from scheduler_core.commands.get_worker_timetable import GetWorkerTimetableCommand
+from scheduler_core.commands.release_timetable_slot import ReleaseTimetableSlotsCommand
 from scheduler_core.commands.take_timetable_slots import TakeTimetableSlotsCommand
 
 from bot import exceptions
@@ -32,6 +34,21 @@ class TimetableManager(Manager):
                 return response.dates
 
         raise exceptions.ApiCommandExecutionError(f'Не удалось добавить слоты в расписание, response={response}')
+
+    async def release_slots(self, entry_ids: FrozenSet[int]) -> List[containers.TimetableEntry]:
+        """
+        :raises:
+            ApiCommandExecutionError если не удалось освободить слоты в расписании
+        """
+
+        command = ReleaseTimetableSlotsCommand(timetable_entries=entry_ids)
+        response = await self._send_command(command)
+
+        if response.status == enums.CommandStatus.SUCCESSFUL_EXECUTION:
+            if isinstance(response, ReleaseTimetableSlotsResponse):
+                return response.timetable_entries
+
+        raise exceptions.ApiCommandExecutionError(f'Не удалось освободить слоты в расписании, response={response}')
 
     async def get_free_slots(self, date_ranges: containers.DateRanges, services: FrozenSet[int],
                              worker_id: int) -> List[containers.TimetableEntry]:

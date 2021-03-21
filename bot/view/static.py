@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from aiogram.utils.markdown import link
-from scheduler_core import enums
+from scheduler_core import enums, containers
 
 from bot import converter
 
@@ -10,6 +10,7 @@ instagram_link = link('dinail58', 'https://instagram.com/dinail58?igshid=6aw9ki1
 BOT_DESCRIPTION = f'Приветствую! Я бот, созданный для {instagram_link}'
 
 INTERNAL_ERROR = 'Ой, что-то пошло не так. Повторите попытку позже.'
+EMPTY_TEXT = '⁣'
 
 SELECT = 'Выберите'
 SELECT_ITEM = f'{SELECT} пункт'
@@ -97,3 +98,15 @@ def get_client_timetable_title(time_type: enums.TimeType, is_found: bool = True)
             return f'Ваши ближайшие записи:\n{_CHANGE_INFORMATION}'
         else:
             return 'У вас пока нет будущих записей'
+
+
+def get_detail_client_timetable(entry: containers.TimetableEntry) -> str:
+    return f'Информация о записи:\nВы записаны на услугу: {entry.service_name}\n' \
+           f'Дата: {converter.to_human_datetime(entry.start_dt)}\n' \
+           f'Работник: {entry.worker_id}'
+
+
+def get_detail_release_client_timetable(entry: containers.TimetableEntry) -> str:
+    return f'Запись ОТМЕНЕНА:\nУслуга: {entry.service_name}\n' \
+           f'Дата: {converter.to_human_datetime(entry.start_dt)}\n' \
+           f'Работник: {entry.worker_id}'
