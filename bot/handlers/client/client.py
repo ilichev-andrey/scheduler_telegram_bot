@@ -113,7 +113,7 @@ class Client(User):
 
         entry_id = int(query.data.removeprefix(self._EDIT_ENTRY_BUTTON_PREFIX))
         await message.answer(
-            static.get_detail_client_timetable(user_data['entries'][entry_id]),
+            static.get_detail_client_timetable(user_data['entries'][entry_id], time_type=enums.TimeType.FUTURE),
             reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(
                 text='Отменить запись',
                 callback_data=f'{self._RELEASE_SLOT_BUTTON_PREFIX}{entry_id}')
@@ -169,7 +169,10 @@ class Client(User):
         user_data = await state.get_data()
 
         entry_id = int(query.data.removeprefix(self._SHOW_DETAIL_BUTTON_PREFIX))
-        await message.answer(static.get_detail_client_timetable(user_data['entries'][entry_id]))
+        await message.answer(static.get_detail_client_timetable(
+            entry=user_data['entries'][entry_id],
+            time_type=enums.TimeType.PAST
+        ))
 
     @staticmethod
     async def _show_timetable(message: types.Message):

@@ -9,7 +9,7 @@ instagram_link = link('dinail58', 'https://instagram.com/dinail58?igshid=6aw9ki1
 support_link = link('support', 'https://t.me/@ilichev_andrey')
 
 CONTACT_SUPPORT = f'Свяжитесь с нами в {support_link}'
-BOT_DESCRIPTION = f'Приветствую! Я бот, созданный для {instagram_link}.\n{CONTACT_SUPPORT} при возникновении проблем'
+BOT_DESCRIPTION = f'Приветствую! Я бот, созданный для {instagram_link}.\n{CONTACT_SUPPORT} при возникновении проблем.'
 
 INTERNAL_ERROR = f'Ой, что-то пошло не так.\nПовторите попытку позже или {CONTACT_SUPPORT.lower()}.'
 EMPTY_TEXT = '⁣'
@@ -102,8 +102,13 @@ def get_client_timetable_title(time_type: enums.TimeType, is_found: bool = True)
             return 'У вас пока нет будущих записей'
 
 
-def get_detail_client_timetable(entry: containers.TimetableEntry) -> str:
-    return f'Информация о записи:\nВы записаны на услугу: {entry.service_name}\n' \
+def get_detail_client_timetable(entry: containers.TimetableEntry, time_type: enums.TimeType) -> str:
+    to_be = ''
+    if time_type == enums.TimeType.PAST:
+        to_be = 'были '
+
+    return 'Информация о записи:\n' \
+           f'Вы {to_be}записаны на услугу: {entry.service_name}\n' \
            f'Дата: {converter.to_human_datetime(entry.start_dt)}\n' \
            f'Работник: {entry.worker_id}'
 
