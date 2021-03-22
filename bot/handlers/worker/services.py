@@ -1,7 +1,6 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from scheduler_core import containers
-from wrappers import LoggerWrap
 
 from bot import exceptions
 from bot.handlers import states, handler

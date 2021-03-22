@@ -5,7 +5,6 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from scheduler_core import containers, enums
-from wrappers import LoggerWrap
 
 from bot import exceptions
 from bot.handlers import states, handler
