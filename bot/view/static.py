@@ -13,6 +13,7 @@ BOT_DESCRIPTION = f'Приветствую! Я бот, созданный для
 
 INTERNAL_ERROR = f'Ой, что-то пошло не так.\nПовторите попытку позже или {CONTACT_SUPPORT.lower()}.'
 EMPTY_TEXT = '⁣'
+DASH_TEXT = '———————————'
 
 SELECT = 'Выберите'
 SELECT_ITEM = f'{SELECT} пункт'
@@ -49,6 +50,8 @@ SEND_LOCATION = 'Отправить геолокацию'
 
 _DETAILED_INFORMATION = 'Можно посмотреть подробную информацию, нажав на кнопку ниже:'
 _CHANGE_INFORMATION = 'Можно изменить запись, нажав на кнопку ниже:'
+
+ADD_BUTTON = 'Добавить'
 
 
 def get_successful_registration_text(service_name: str, dt: datetime, client: str = None) -> str:

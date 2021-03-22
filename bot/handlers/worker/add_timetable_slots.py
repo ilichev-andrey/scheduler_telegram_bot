@@ -161,13 +161,13 @@ class AddTimetableSlots(AbstractHandler):
                 _time = ' '
             markup.add(InlineKeyboardButton(text=_time, callback_data=f'{self._BUTTON_PREFIX}{_time}'))
 
-        markup.add(InlineKeyboardButton(text='———————————', callback_data='None'))
-        markup.add(InlineKeyboardButton(text='Вы выбрали:', callback_data='None'))
+        markup.add(InlineKeyboardButton(text=static.DASH_TEXT, callback_data='None'))
+        markup.add(InlineKeyboardButton(text=f'{static.SELECTED}:', callback_data='None'))
         for chosen_time in chosen_times:
             markup.add(InlineKeyboardButton(text=chosen_time, callback_data='None'))
 
-        markup.add(InlineKeyboardButton(text='———————————', callback_data='None'))
-        markup.add(InlineKeyboardButton(text='Добавить', callback_data=self._ADD_SLOTS_BUTTON))
+        markup.add(InlineKeyboardButton(text=static.DASH_TEXT, callback_data='None'))
+        markup.add(InlineKeyboardButton(text=static.ADD_BUTTON, callback_data=self._ADD_SLOTS_BUTTON))
         return markup
 
     async def _add_slots(self, query: types.CallbackQuery):
